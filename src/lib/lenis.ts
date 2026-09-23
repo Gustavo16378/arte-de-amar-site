@@ -75,6 +75,35 @@ export function restaurarScroll(y: number) {
   instancia.scrollTo(y, { immediate: true, force: true })
 }
 
+/* ------------------------------------------------ rolagem programática */
+
+/**
+ * Enquanto uma rolagem por clique acontece, o header não deve reagir à
+ * direção do scroll: seria estranho ele fugir justamente quando o usuário
+ * pediu para ir a algum lugar.
+ *
+ * O aviso é um booleano observável. A trava tem um prazo de validade: se o
+ * usuário interromper a rolagem com o dedo ou com a roda, o Lenis pode não
+ * chamar o `onComplete`, e sem o prazo o header ficaria preso visível.
+ */
+const DURACAO = 1.1
+let emRolagemProgramada = false
+let prazo: number | undefined
+const ouvintes = new Set<(ativo: boolean) => void>()
+
+function marcarRolagemProgramada(ativo: boolean) {
+  window.clearTimeout(prazo)
+  if (ativo) prazo = window.setTimeout(() => marcarRolagemProgramada(false), DURACAO * 1000 + 400)
+  if (ativo === emRolagemProgramada) return
+  emRolagemProgramada = ativo
+  ouvintes.forEach((f) => f(ativo))
+}
+
+export function observarRolagemProgramada(ouvinte: (ativo: boolean) => void) {
+  ouvintes.add(ouvinte)
+  return () => ouvintes.delete(ouvinte)
+}
+
 /**
  * Leva até uma seção, descontando a altura do header.
  * Com o Lenis ativo quem anima é ele; sem Lenis, o ScrollToPlugin faz o
@@ -84,15 +113,22 @@ export function irPara(alvo: string | HTMLElement, recuo: number) {
   const el = typeof alvo === 'string' ? document.querySelector<HTMLElement>(alvo) : alvo
   if (!el) return
 
+  marcarRolagemProgramada(true)
+
   if (instancia) {
-    instancia.scrollTo(el, { offset: -recuo, duration: 1.1 })
+    instancia.scrollTo(el, {
+      offset: -recuo,
+      duration: DURACAO,
+      onComplete: () => marcarRolagemProgramada(false),
+    })
     return
   }
 
   const reduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches
   gsap.to(window, {
-    duration: reduzido ? 0 : 1.1,
+    duration: reduzido ? 0 : DURACAO,
     ease: 'power2.inOut',
     scrollTo: { y: el, offsetY: recuo, autoKill: true },
+    onComplete: () => marcarRolagemProgramada(false),
   })
 }

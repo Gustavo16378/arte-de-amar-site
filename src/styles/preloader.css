@@ -1,0 +1,119 @@
+/*
+ * Preloader. Só na primeira visita da sessão.
+ * A coreografia está em components/Preloader.tsx; aqui fica só o repouso.
+ */
+
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--verde-profundo);
+  /* a cortina sobe a partir daqui */
+  will-change: transform;
+}
+
+.preloader__local {
+  position: absolute;
+  top: calc(28px + env(safe-area-inset-top));
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: .3em;
+  text-transform: uppercase;
+  color: var(--neutro);
+}
+
+.preloader__centro {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+}
+
+/* 60% da largura no mobile, 40% da altura no desktop */
+.preloader__coracao {
+  width: 60vw;
+  height: auto;
+  overflow: visible;
+  transform-origin: center;
+}
+
+/*
+ * Escrita à mão: o texto existe só como contorno, e o recorte o revela da
+ * esquerda para a direita. O preenchimento entra depois, animando `color`.
+ * O recorte é uma variável para o GSAP poder interpolá-lo com segurança.
+ */
+.preloader__nome {
+  --recorte: 100%;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 44px;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--creme);
+  padding: 0 8px;
+  clip-path: inset(-10% var(--recorte) -10% 0);
+}
+
+/*
+ * O primeiro trecho do fio, que desce do coração enquanto a cortina sobe.
+ * Cresce por scaleY, não por height: é uma propriedade que a GPU compõe.
+ */
+.preloader__fio {
+  position: absolute;
+  left: 50%;
+  top: calc(50% + 40px);
+  width: 1.5px;
+  height: 80vh;
+  margin-left: -.75px;
+  background: linear-gradient(180deg, var(--menta), var(--esmeralda));
+  transform: scaleY(0);
+  transform-origin: top;
+}
+
+.preloader__pct {
+  position: absolute;
+  right: 20px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 11px;
+  line-height: 1;
+  letter-spacing: .14em;
+  font-variant-numeric: tabular-nums;
+  color: var(--neutro);
+}
+
+@media (min-width: 1024px) {
+  .preloader__local {
+    top: 32px;
+    font-size: 11px;
+  }
+
+  .preloader__centro {
+    gap: clamp(20px, 4vh, 40px);
+  }
+
+  .preloader__coracao {
+    width: auto;
+    height: 40vh;
+  }
+
+  .preloader__nome {
+    font-size: clamp(44px, 5.2vw, 88px);
+  }
+
+  .preloader__pct {
+    right: 32px;
+    bottom: 28px;
+    font-size: 12px;
+  }
+}

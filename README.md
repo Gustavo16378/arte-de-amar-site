@@ -54,7 +54,9 @@ regra de seção que defina `display`.
 2. **Navegação** — concluída. Header mobile com esconder/mostrar e inversão de
    tema, menu em portal com scroll lock, índice lateral desktop com progresso
    do fio, botão Doar flutuante, ScrollTo e Lenis.
-3. Preloader completo, com cortina e nascimento do fio.
+3. **Preloader** — concluído. Coração desenhando com DrawSVG, "Arte de Amar"
+   escrito à mão, porcentagem, preenchimento e pulso, cortina e nascimento do
+   fio. Só na primeira visita da sessão.
 4. O fio: DrawSVG com scrub em todas as seções, continuidade entre elas, o
    coração fechando em Como ajudar, o fio como linha do tempo e como barra de
    progresso.
@@ -123,6 +125,32 @@ Onde o design não fechava sozinho, a escolha foi esta:
 - **`data-dark` marca Números, Nossa atuação, Como ajudar e o rodapé.** O hero
   fica de fora de propósito: ele é escuro, mas o design mostra o header claro
   sobre ele, que é o primeiro enquadramento da página.
+- **Durante uma rolagem por clique o header não reage à direção.** Seria
+  estranho ele fugir justamente quando o usuário pediu para ir a algum lugar.
+  A trava é liberada pelo `onComplete` do Lenis e tem um prazo de validade,
+  porque uma rolagem interrompida com o dedo pode nunca chamar o callback.
+
+## Decisões da Fase 3
+
+- **O preloader decide se aparece no primeiro render**, lendo o
+  `sessionStorage` no inicializador do estado. Decidir num efeito deixaria o
+  hero piscar antes da cortina.
+- **O primeiro trecho do fio é desenhado sobre a cortina, não no hero.** O fio
+  do hero começa no topo da seção, que é a última parte revelada por uma
+  cortina que sobe: ninguém veria o nascimento. Preso ao coração, ele desce
+  junto e dá a leitura de fio sendo puxado para dentro da página. O fio do
+  hero é desenhado até 30% no mesmo intervalo e continua de onde este para.
+- **A animação do fio do hero roda fora do `gsap.context` do preloader.** Ela
+  pertence ao hero: dentro do contexto, o `revert` do desmonte apagaria o
+  traço recém-nascido.
+- **Remedimos o ScrollTrigger ao soltar a trava de rolagem.** Com o body em
+  `position: fixed` o documento fica com altura de viewport, e todo
+  ScrollTrigger medido nesse intervalo fica com o fim em zero: o progresso do
+  índice travava em 100% e o `onUpdate` parava de acompanhar a página inteira
+  depois do preloader.
+- **A cauda que completa o fio do hero até 100% é temporária.** Ela existe para
+  o fio não ficar cortado em 30% enquanto a Fase 4 não liga o scrub, e está
+  marcada com TODO no `Preloader.tsx`.
 
 ## Pendências para a ONG
 

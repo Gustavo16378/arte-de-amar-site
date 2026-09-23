@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { ScrollTrigger } from '../lib/gsap'
 import { pausarLenis, restaurarScroll, retomarLenis } from '../lib/lenis'
 
 /**
@@ -41,6 +42,13 @@ export function useScrollLock(ativo: boolean) {
       body.style.width = anterior.width
       retomarLenis()
       restaurarScroll(y)
+      /*
+       * Com o body fora do fluxo o documento tem altura de viewport, e todo
+       * ScrollTrigger criado ou medido nesse intervalo fica com o fim em
+       * zero: o progresso trava em 100% e o onUpdate para de acompanhar.
+       * Remedir aqui conserta tanto o preloader quanto o menu.
+       */
+      ScrollTrigger.refresh()
     }
   }, [ativo])
 }

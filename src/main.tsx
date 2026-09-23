@@ -6,6 +6,7 @@ import App from './App'
 import './styles/global.css'
 import './styles/componentes.css'
 import './styles/header.css'
+import './styles/preloader.css'
 import './styles/secoes.css'
 import './styles/visibilidade.css'
 
