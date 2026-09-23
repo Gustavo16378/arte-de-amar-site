@@ -13,7 +13,7 @@ export function Hero() {
   return (
     <section id="inicio" className="secao hero" data-secao="inicio">
       {/* o preloader já desenhou os primeiros 30%, saindo do coração */}
-      <Fio secao="hero" de="30%" inicio="top top" />
+      <Fio secao="hero" de={0.3} inicio="top top" />
 
       <Blob className="hero__foto" mascara={null} foto={FOTO_HERO} prioridade />
       <div className="hero__veu" aria-hidden="true" />

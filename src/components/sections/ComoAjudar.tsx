@@ -37,7 +37,8 @@ export function ComoAjudar() {
       data-secao="como-ajudar"
       data-dark=""
     >
-      <Fio secao="ajudar" cor="menta" />
+      {/* quem desenha este fio é o CoracaoDoFio, em sequência com o coração */}
+      <Fio secao="ajudar" cor="menta" externo />
       <CoracaoDoFio />
 
       <div className="secao__conteudo">

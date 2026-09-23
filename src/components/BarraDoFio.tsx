@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { gsap } from '../lib/gsap'
+import { aplicarTraco, TRACO_DESENHAVEL } from '../lib/desenho'
 
 type Props = {
   feito: number
@@ -26,20 +27,19 @@ export function BarraDoFio({ feito, total, unidade, rotulo }: Props) {
     const mm = gsap.matchMedia()
 
     mm.add('(prefers-reduced-motion: reduce)', () => {
-      gsap.set(el, { drawSVG: `0% ${fracao * 100}%` })
+      aplicarTraco(el, fracao)
     })
 
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      gsap.fromTo(
-        el,
-        { drawSVG: '0%' },
-        {
-          drawSVG: `0% ${fracao * 100}%`,
-          duration: 1.2,
-          ease: 'power2.out',
-          scrollTrigger: { trigger: el, start: 'top 85%' },
-        },
-      )
+      // o GSAP anima o número e nós escrevemos o traço, como no resto do fio
+      const estado = { v: 0 }
+      gsap.to(estado, {
+        v: fracao,
+        duration: 1.2,
+        ease: 'power2.out',
+        onUpdate: () => aplicarTraco(el, estado.v),
+        scrollTrigger: { trigger: el, start: 'top 85%' },
+      })
     })
 
     return () => mm.revert()
@@ -69,6 +69,7 @@ export function BarraDoFio({ feito, total, unidade, rotulo }: Props) {
             stroke="url(#fio-grad-h)"
             fill="none"
             strokeLinecap="round"
+            {...TRACO_DESENHAVEL}
           />
         </svg>
       </div>

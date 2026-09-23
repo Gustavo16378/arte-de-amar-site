@@ -1539,11 +1539,18 @@
     padding-bottom: clamp(80px, 14vh, 160px);
   }
 
+  /*
+   * Centralizado, como no mobile. O source do desktop encostava o coração na
+   * direita (right: 6%), onde ele colidia com o fim do título e caía em cima
+   * da terceira coluna. Centralizado ele fica atrás do título, que é a
+   * leitura que a versão principal usa.
+   */
   .ajudar__coracao {
-    left: auto;
-    right: 6%;
-    top: 8%;
-    width: min(38vw, 520px);
+    left: 50%;
+    right: auto;
+    top: 3%;
+    width: min(36vw, 500px);
+    transform: translateX(-50%);
   }
 
   .ajudar__titulo {

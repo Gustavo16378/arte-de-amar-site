@@ -1,10 +1,22 @@
 import { useEffect, useRef, useState } from 'react'
 import { gsap } from '../lib/gsap'
 import { useScrollLock } from '../hooks/useScrollLock'
+import { aplicarTraco, TRACO_DESENHAVEL, tweenDoTraco } from '../lib/desenho'
 import { CORACAO_PRELOADER, CORACAO_VIEWBOX } from '../lib/heart-path'
 import { SITE } from '../content/site'
 
-const CHAVE_SESSAO = 'aa-preloader'
+/*
+ * O preloader roda em toda visita, e não só na primeira da sessão: é uma
+ * decisão da ONG, que quer a abertura sempre.
+ *
+ * O `?nopre` na URL pula a abertura. Serve para conferir o resto da página
+ * sem esperar quatro segundos a cada recarga, e é a mesma saída que o
+ * source.html de referência tinha.
+ */
+function devePular() {
+  if (typeof window === 'undefined') return true
+  return new URLSearchParams(location.search).has('nopre')
+}
 
 type Props = {
   /** chamado quando a cortina termina de subir */
@@ -26,15 +38,7 @@ type Props = {
  */
 export function Preloader({ aoTerminar }: Props) {
   // decidido no primeiro render, para a tela não piscar o hero antes
-  const [visivel, setVisivel] = useState(() => {
-    if (typeof window === 'undefined') return false
-    try {
-      return !sessionStorage.getItem(CHAVE_SESSAO)
-    } catch {
-      // navegação privada pode barrar o sessionStorage: mostra uma vez
-      return true
-    }
-  })
+  const [visivel, setVisivel] = useState(() => !devePular())
 
   const raiz = useRef<HTMLDivElement>(null)
   const porcentagem = useRef<HTMLSpanElement>(null)
@@ -43,12 +47,6 @@ export function Preloader({ aoTerminar }: Props) {
 
   useEffect(() => {
     if (!visivel || !raiz.current) return
-
-    try {
-      sessionStorage.setItem(CHAVE_SESSAO, '1')
-    } catch {
-      /* sem sessionStorage o preloader aparece de novo, e tudo bem */
-    }
 
     const reduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
@@ -60,11 +58,7 @@ export function Preloader({ aoTerminar }: Props) {
     const fioHero = reduzido ? null : visivelEntre('[data-fio="hero"] .fio__traco')
     if (fioHero) {
       // daqui em diante quem desenha é o scrub do próprio hero
-      gsap.fromTo(
-        fioHero,
-        { drawSVG: '0%' },
-        { drawSVG: '30%', duration: 1, ease: 'power2.out', delay: 2.5 },
-      )
+      tweenDoTraco(fioHero, 0, 0.3, { duration: 1, ease: 'power2.out', delay: 2.5 })
     }
 
     const ctx = gsap.context(() => {
@@ -77,9 +71,11 @@ export function Preloader({ aoTerminar }: Props) {
 
       if (reduzido) {
         // tudo já no estado final; só a cortina vira um fade curto
-        gsap.set('[data-pre-lobulos], [data-pre-base], [data-pre-figura]', {
-          drawSVG: '100%',
-        })
+        for (const el of raiz.current!.querySelectorAll<SVGElement>(
+          '[data-pre-lobulos], [data-pre-base], [data-pre-figura]',
+        )) {
+          aplicarTraco(el, 1)
+        }
         gsap.set('[data-pre-coracao]', { fill: 'var(--menta)' })
         gsap.set('[data-pre-nome]', { '--recorte': '0%', color: 'var(--creme)' })
         if (porcentagem.current) porcentagem.current.textContent = '100%'
@@ -88,27 +84,21 @@ export function Preloader({ aoTerminar }: Props) {
       }
 
       // ------------------------------------------- o coração se desenha
-      tl.fromTo(
-        '[data-pre-lobulos]',
-        { drawSVG: '0%' },
-        { drawSVG: '100%', duration: 1, ease: 'power2.inOut' },
-        0.05,
-      )
-        .fromTo(
-          '[data-pre-base]',
-          { drawSVG: '0%' },
-          { drawSVG: '100%', duration: 0.5, ease: 'power2.out' },
-          0.95,
-        )
-        .fromTo(
-          '[data-pre-figura]',
-          { drawSVG: '0%' },
-          { drawSVG: '100%', duration: 0.3, ease: 'power2.out', stagger: 0.15 },
-          1.35,
-        )
+      const lobulos = raiz.current!.querySelector<SVGElement>('[data-pre-lobulos]')!
+      const base = raiz.current!.querySelector<SVGElement>('[data-pre-base]')!
+      const figuras = [...raiz.current!.querySelectorAll<SVGElement>('[data-pre-figura]')]
+
+      tl.add(tweenDoTraco(lobulos, 0, 1, { duration: 1, ease: 'power2.inOut' }), 0.05)
+        .add(tweenDoTraco(base, 0, 1, { duration: 0.5, ease: 'power2.out' }), 0.95)
+        .add(tweenDoTraco(figuras[0], 0, 1, { duration: 0.3, ease: 'power2.out' }), 1.35)
+        .add(tweenDoTraco(figuras[1], 0, 1, { duration: 0.3, ease: 'power2.out' }), 1.5)
 
         // ----------------------------- "Arte de Amar", escrito à mão
-        .to('[data-pre-nome]', { '--recorte': '0%', duration: 1.2, ease: 'power2.out' }, 0.4)
+        .to(
+          '[data-pre-nome]',
+          { '--recorte': '0%', duration: 1.2, ease: 'power2.out' },
+          0.4,
+        )
         .to('[data-pre-nome]', { color: 'var(--creme)', duration: 0.5 }, 1.4)
 
         // ------------------------------------ a porcentagem sobe junto
@@ -167,10 +157,21 @@ export function Preloader({ aoTerminar }: Props) {
             aria-hidden="true"
             focusable="false"
           >
-            <path data-pre-lobulos="" d={CORACAO_PRELOADER.lobulos} />
-            <path data-pre-base="" d={CORACAO_PRELOADER.base} />
+            <path
+              data-pre-lobulos=""
+              d={CORACAO_PRELOADER.lobulos}
+              {...TRACO_DESENHAVEL}
+            />
+            <path data-pre-base="" d={CORACAO_PRELOADER.base} {...TRACO_DESENHAVEL} />
             {CORACAO_PRELOADER.figuras.map((f) => (
-              <circle key={f.cy} data-pre-figura="" cx={f.cx} cy={f.cy} r={f.r} />
+              <circle
+                key={f.cy}
+                data-pre-figura=""
+                cx={f.cx}
+                cy={f.cy}
+                r={f.r}
+                {...TRACO_DESENHAVEL}
+              />
             ))}
           </svg>
 
@@ -203,13 +204,4 @@ export function Preloader({ aoTerminar }: Props) {
 function visivelEntre(seletor: string): SVGPathElement | null {
   const candidatos = [...document.querySelectorAll<SVGPathElement>(seletor)]
   return candidatos.find((el) => getComputedStyle(el).display !== 'none') ?? null
-}
-
-/** true se o preloader ainda vai aparecer nesta sessão */
-export function preloaderPendente() {
-  try {
-    return !sessionStorage.getItem(CHAVE_SESSAO)
-  } catch {
-    return true
-  }
 }

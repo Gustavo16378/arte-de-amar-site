@@ -132,9 +132,12 @@ Onde o design não fechava sozinho, a escolha foi esta:
 
 ## Decisões da Fase 3
 
-- **O preloader decide se aparece no primeiro render**, lendo o
-  `sessionStorage` no inicializador do estado. Decidir num efeito deixaria o
-  hero piscar antes da cortina.
+- **O preloader roda em toda visita**, e não só na primeira da sessão: é
+  decisão da ONG, que quer a abertura sempre. O `?nopre` na URL pula a
+  abertura, para conferir o resto da página sem esperar quatro segundos a
+  cada recarga; é a mesma saída que o source.html de referência tinha.
+- **A decisão é tomada no primeiro render**, no inicializador do estado.
+  Decidir num efeito deixaria o hero piscar antes da cortina.
 - **O primeiro trecho do fio é desenhado sobre a cortina, não no hero.** O fio
   do hero começa no topo da seção, que é a última parte revelada por uma
   cortina que sobe: ninguém veria o nascimento. Preso ao coração, ele desce
@@ -185,6 +188,57 @@ Onde o design não fechava sozinho, a escolha foi esta:
 - **O fio de Como ajudar é recalculado a partir da caixa do coração na tela.**
   Ele tem que terminar exatamente na fenda, e a fenda muda de lugar com a
   largura da janela. O valor em `fio-paths.ts` é só o ponto de partida.
+
+## Correções depois da Fase 4
+
+Três defeitos que só apareceram com a página rolando de verdade, todos com a
+mesma raiz.
+
+- **O fio desenhava rápido demais e de forma irregular.** Na linha do tempo ele
+  ia cinco vezes mais rápido que o trilho; nas seções, andava, parava e
+  pulava. Causa: o fio vivia num `viewBox` esticado por
+  `preserveAspectRatio="none"`, onde a escala horizontal e a vertical são
+  diferentes. O DrawSVG mede o path em unidades de tela e aplica uma escala
+  média das duas; o `vector-effect="non-scaling-stroke"` calcula o tracejado
+  em pixels de tela; e o navegador aplica o resto em unidades do viewBox. As
+  três medidas discordavam, e discordavam de forma desigual ao longo do path.
+
+  A saída é a mesma dos source.html: **o espaço do SVG passou a ser pixels
+  reais**. O viewBox recebe a caixa da seção e as coordenadas do path são
+  convertidas de porcentagem para pixel a cada medição. Com escala 1:1 as
+  medidas coincidem, o traço não deforma sem precisar de
+  `non-scaling-stroke`, e o desenho fica exato.
+
+- **O GSAP não interpola `stroke-dashoffset`.** Ligado a um scrub ou a um
+  tween, o valor saltava do início para o fim e o traço aparecia de uma vez.
+  Agora o GSAP anima um número solto e nós escrevemos o `stroke-dashoffset`
+  a partir dele, por `tweenDoTraco()` e `aplicarTraco()` em
+  `lib/desenho.ts`. Vale para o fio, para a linha do tempo, para o coração,
+  para a barra de progresso e para o preloader.
+
+- **O coração fechava antes de o fio chegar nele.** Eles tinham gatilhos
+  separados e, como Como ajudar é uma seção alta, o fio levava a seção inteira
+  para chegar enquanto o coração fechava logo na entrada. Agora os dois são
+  desenhados pelo mesmo ScrollTrigger, em sequência: o fio ocupa os primeiros
+  35% do percurso e o coração o resto.
+
+E mais três acertos de leitura:
+
+- **Os marcos acendiam tarde demais.** A ponta do fio era estimada por
+  `progresso × largura do trilho`, o que erra porque o path começa e termina
+  recuado 20% da janela. Agora a posição vem do próprio path, e o marco acende
+  60px antes de a linha chegar nele: a foto já está subindo quando o fio passa.
+- **A onda da linha do tempo tinha período fixo de 380px**, sem relação com o
+  espaçamento dos marcos, então o fio cruzava o meio em pontos arbitrários e
+  os pontinhos ficavam soltos fora da linha. Agora ela cruza o meio exatamente
+  em cada marco.
+- **O degradê do fio precisa de coordenadas reais.** Em `objectBoundingBox`
+  uma linha perfeitamente vertical tem caixa de largura zero, e o navegador
+  não desenha nada: era o que sumia com o fio da Nossa história. Cada seção
+  tem agora o seu degradê, ao longo da própria altura.
+- **O coração de Como ajudar ficava encostado na direita no desktop**
+  (`right: 6%` do source), colidindo com o fim do título e caindo em cima da
+  terceira coluna. Passou a ser centralizado, como no mobile, atrás do título.
 
 ## Pendências para a ONG
 

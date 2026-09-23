@@ -2,7 +2,8 @@ import { Fragment, useEffect, useRef } from 'react'
 import { Blob } from '../Blob'
 import { Fio } from '../Fio'
 import { comEnfase } from '../Titulo'
-import { gsap, ScrollTrigger } from '../../lib/gsap'
+import { gsap } from '../../lib/gsap'
+import { aplicarTraco, TRACO_DESENHAVEL } from '../../lib/desenho'
 import { caminhoDaLinhaDoTempo, medidasDaLinhaDoTempo } from '../../lib/timeline-path'
 import { MARCOS, MARCOS_MOBILE, type Marco } from '../../content/marcos'
 import { HISTORIA } from '../../content/site'
@@ -137,9 +138,12 @@ function HistoriaDesktop() {
       if (!elSecao || !elTrilho || !elSvg || !elTraco) return
 
       const marcos = [...elTrilho.querySelectorAll<HTMLElement>('[data-marco]')]
+      // quanto o marco acende antes de a linha chegar nele
+      const ANTECIPACAO = 60
       let larguraTrilho = 0
       let percurso = 0
       let rolagem = 0
+      let comprimento = 0
 
       /*
        * O caminho depende da largura real do trilho, que depende das fontes e
@@ -151,41 +155,73 @@ function HistoriaDesktop() {
         const m = medidasDaLinhaDoTempo(larguraTrilho, window.innerWidth)
         percurso = m.percurso
         rolagem = m.rolagem
-        elSvg.setAttribute('viewBox', `0 0 ${larguraTrilho} 100`)
-        elTraco.setAttribute('d', caminhoDaLinhaDoTempo(larguraTrilho, window.innerWidth))
+        const alturaPalco = elTrilho.getBoundingClientRect().height || window.innerHeight
+        elSvg.setAttribute('viewBox', `0 0 ${larguraTrilho} ${Math.round(alturaPalco)}`)
+        elTraco.setAttribute(
+          'd',
+          caminhoDaLinhaDoTempo(
+            larguraTrilho,
+            window.innerWidth,
+            alturaPalco,
+            marcos.map((m) => m.offsetLeft),
+          ),
+        )
+        comprimento = elTraco.getTotalLength()
       }
       medir()
 
-      const st = ScrollTrigger.create({
-        trigger: elSecao,
-        start: 'top top',
-        end: () => `+=${rolagem}`,
-        pin: palco.current,
-        scrub: 1,
-        invalidateOnRefresh: true,
-        onRefreshInit: medir,
-        /*
-         * Enquanto a linha do tempo está pinada, o índice lateral sai de
-         * cena: os marcos passam por baixo dele e o texto colidia. Aqui o
-         * próprio fio já é o indicador de progresso da seção.
-         */
-        onToggle: (self) => {
-          document.documentElement.classList.toggle('na-linha-do-tempo', self.isActive)
-        },
-        onUpdate: (self) => {
-          const p = self.progress
-          gsap.set(elTrilho, { x: -p * percurso })
-          gsap.set(elTraco, { drawSVG: `0% ${p * 100}%` })
+      /*
+       * O GSAP anima um número e nós aplicamos tudo a partir dele. Ligar o
+       * scrub direto nas propriedades não interpolava, e num ScrollTrigger
+       * sem animação o scrub também não suavizaria nada.
+       */
+      const aplicar = (p: number) => {
+        gsap.set(elTrilho, { x: -p * percurso })
+        aplicarTraco(elTraco, p)
 
-          // a ponta do fio, um pouco à frente da borda esquerda da janela
-          const ponta = p * larguraTrilho + window.innerWidth * 0.1
-          for (const m of marcos) {
-            m.classList.toggle('esta-aceso', ponta > m.offsetLeft + 200)
-          }
+        /*
+         * Onde a ponta do traço está de verdade, perguntando ao próprio
+         * path. Estimar por p * larguraTrilho errava, porque o path começa
+         * e termina recuado 20% da janela em cada ponta.
+         *
+         * O marco acende quando o fio chega ao seu ponto, com um pouco de
+         * antecedência: a foto tem que já estar subindo quando a linha
+         * passa por ela, não depois.
+         */
+        const ponta = elTraco.getPointAtLength(p * comprimento).x
+        for (const m of marcos) {
+          m.classList.toggle('esta-aceso', ponta > m.offsetLeft - ANTECIPACAO)
+        }
+      }
+
+      const estado = { p: 0 }
+      const tween = gsap.to(estado, {
+        p: 1,
+        ease: 'none',
+        onUpdate: () => aplicar(estado.p),
+        scrollTrigger: {
+          trigger: elSecao,
+          start: 'top top',
+          end: () => `+=${rolagem}`,
+          pin: palco.current,
+          scrub: 1,
+          invalidateOnRefresh: true,
+          onRefreshInit: medir,
+          /*
+           * Enquanto a linha do tempo está pinada, o índice lateral sai de
+           * cena: os marcos passam por baixo dele e o texto colidia. Aqui o
+           * próprio fio já é o indicador de progresso da seção.
+           */
+          onToggle: (self) => {
+            document.documentElement.classList.toggle('na-linha-do-tempo', self.isActive)
+          },
         },
       })
 
-      return () => st.kill()
+      return () => {
+        tween.scrollTrigger?.kill()
+        tween.kill()
+      }
     })
 
     return () => mm.revert()
@@ -199,7 +235,7 @@ function HistoriaDesktop() {
           <svg
             ref={svg}
             className="historia-desktop__fio"
-            viewBox="0 0 4000 100"
+            viewBox="0 0 4000 900"
             preserveAspectRatio="none"
             aria-hidden="true"
             focusable="false"
@@ -207,11 +243,11 @@ function HistoriaDesktop() {
             <path
               ref={traco}
               d=""
-              vectorEffect="non-scaling-stroke"
               stroke="var(--esmeralda)"
               strokeWidth="2"
               fill="none"
               strokeLinecap="round"
+              {...TRACO_DESENHAVEL}
             />
           </svg>
 
