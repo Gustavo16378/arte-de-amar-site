@@ -1,0 +1,353 @@
+/* Peças reutilizadas por todas as seções. */
+
+/* ---------------------------------------------------------------- seções */
+
+.secao {
+  position: relative;
+  overflow: hidden;
+}
+
+.secao-escura {
+  background: var(--verde-profundo);
+  color: var(--creme);
+}
+
+/* o conteúdo sobe acima do fio, que fica em z-index 0 */
+.secao__conteudo {
+  position: relative;
+  z-index: 1;
+}
+
+/* ------------------------------------------------------------------- fio */
+
+.fio {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.fio__traco {
+  stroke-width: 1.5;
+}
+
+.fio__traco--desktop {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .fio__traco {
+    stroke-width: 2;
+  }
+
+  .fio__traco--mobile {
+    display: none;
+  }
+
+  .fio__traco--desktop {
+    display: block;
+  }
+}
+
+/* granulação fina por cima de tudo, 13% em multiply */
+.granulado {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 60;
+  opacity: .13;
+  mix-blend-mode: multiply;
+}
+
+/* ---------------------------------------------------------------- rótulo */
+
+.rotulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--neutro-fechado);
+}
+
+.rotulo::before {
+  content: '';
+  flex: none;
+  width: 18px;
+  height: 1.5px;
+  background: linear-gradient(90deg, var(--menta), var(--esmeralda));
+}
+
+.secao-escura .rotulo {
+  color: var(--neutro);
+}
+
+.secao-escura .rotulo::before {
+  background: var(--menta);
+}
+
+@media (min-width: 1024px) {
+  .rotulo {
+    font-size: 11px;
+  }
+
+  .rotulo::before {
+    width: 22px;
+    height: 2px;
+  }
+}
+
+/* rótulo sem o traço, usado dentro dos blocos */
+.rotulo-simples {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--neutro-fechado);
+}
+
+.secao-escura .rotulo-simples {
+  color: var(--neutro);
+}
+
+@media (min-width: 1024px) {
+  .rotulo-simples {
+    font-size: 11px;
+    letter-spacing: .2em;
+  }
+}
+
+/* ------------------------------------------------------------ tipografia */
+
+.titulo-secao {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 42px;
+  line-height: 1.02;
+  letter-spacing: -.015em;
+  text-wrap: pretty;
+}
+
+@media (min-width: 1024px) {
+  .titulo-secao {
+    font-size: clamp(40px, 4.6vw, 76px);
+    line-height: 1.05;
+  }
+}
+
+em {
+  font-style: italic;
+  font-weight: 300;
+  color: var(--esmeralda);
+}
+
+.secao-escura em {
+  color: var(--menta);
+}
+
+.corpo {
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 16px;
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+@media (min-width: 1024px) {
+  .corpo {
+    line-height: 1.6;
+  }
+}
+
+/* ------------------------------------------------------------------ foto */
+
+.foto {
+  position: relative;
+  overflow: hidden;
+  transition: border-radius .8s var(--ease-out);
+}
+
+.foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--foto-filtro);
+  transition: transform 1.2s var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .foto:hover {
+    border-radius: 16px;
+  }
+
+  .foto:hover img {
+    transform: scale(1.04);
+  }
+}
+
+/* moldura listrada dos retratos que a ONG ainda não mandou */
+.retrato-vazio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px;
+  background: repeating-linear-gradient(135deg, #E6DFD0 0 12px, #DDD5C4 12px 24px);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.4;
+  color: var(--neutro-fechado);
+}
+
+/* ----------------------------------------------------------------- botão */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 0;
+  border-radius: 999px;
+  min-height: 44px;
+  padding: 0 22px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background .3s var(--ease-out), color .3s var(--ease-out),
+    border-color .3s var(--ease-out);
+}
+
+.pill svg {
+  flex: none;
+  transition: fill .3s var(--ease-out);
+}
+
+.pill--largo {
+  display: flex;
+  width: 100%;
+  min-height: 52px;
+}
+
+.pill--escuro {
+  background: var(--verde-profundo);
+  color: var(--creme);
+}
+
+.pill--menta {
+  background: var(--menta);
+  color: var(--verde-profundo);
+}
+
+.pill--creme {
+  background: var(--creme);
+  color: var(--verde-profundo);
+}
+
+.pill--contorno {
+  background: transparent;
+  color: var(--menta);
+  box-shadow: inset 0 0 0 1px var(--menta);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .pill:hover svg[data-preenche] {
+    fill: currentColor;
+  }
+
+  .pill--escuro:hover {
+    background: var(--esmeralda);
+  }
+
+  .pill--menta:hover,
+  .pill--creme:hover {
+    background: var(--creme);
+  }
+
+  .pill--menta:hover {
+    background: var(--creme);
+  }
+
+  .pill--creme:hover {
+    background: var(--menta);
+  }
+
+  .pill--contorno:hover {
+    background: var(--menta);
+    color: var(--verde-profundo);
+  }
+}
+
+@media (min-width: 1024px) {
+  .pill {
+    padding: 16px 26px;
+  }
+}
+
+/* link com traço do fio embaixo */
+.link-fio {
+  position: relative;
+  display: inline-block;
+  padding: 6px 0;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 15px;
+  line-height: 1;
+  color: inherit;
+  text-decoration: none;
+}
+
+.link-fio::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 1.5px;
+  background: linear-gradient(90deg, var(--menta), var(--esmeralda));
+  transform: scaleX(.4);
+  transform-origin: left;
+  transition: transform .5s var(--ease-out);
+}
+
+.secao-escura .link-fio::after {
+  background: var(--menta);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link-fio:hover::after {
+    transform: scaleX(1);
+  }
+}
+
+@media (min-width: 1024px) {
+  .link-fio::after {
+    height: 2px;
+  }
+}
+
+/* ------------------------------------------------------------- carrossel */
+
+.sem-barra {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sem-barra::-webkit-scrollbar {
+  display: none;
+}

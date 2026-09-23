@@ -1,0 +1,1742 @@
+/*
+ * Layout de cada seção. Mobile primeiro (390px é a versão principal), depois
+ * o desktop a partir de 1024px. Os valores vêm dos source.html de referência.
+ */
+
+/* margem padrão do conteúdo: o fio corre a 20px, o texto começa a 44px */
+.calha {
+  padding-left: 44px;
+  padding-right: 20px;
+}
+
+@media (min-width: 1024px) {
+  .calha {
+    padding-left: var(--pad-l);
+    padding-right: clamp(48px, 8vw, 120px);
+  }
+}
+
+/* ============================================================ 01 · HERO */
+
+.hero {
+  min-height: 100svh;
+  background: var(--verde-profundo);
+  color: var(--creme);
+}
+
+/* no mobile a foto sangra inteira e só a base ganha a curva do recorte */
+.hero__foto {
+  position: absolute;
+  inset: 0;
+  border-radius: 0 0 46% 54% / 0 0 18% 22%;
+}
+
+.hero__foto img {
+  object-position: 50% 20%;
+}
+
+/* gradiente só no terço inferior */
+.hero__veu {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 36%;
+  background: linear-gradient(180deg, rgba(11, 46, 34, 0), rgba(11, 46, 34, .92));
+}
+
+.hero__copy {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: calc(40px + env(safe-area-inset-bottom));
+  z-index: 2;
+  color: var(--creme);
+}
+
+.hero__titulo {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 48px;
+  line-height: 1.02;
+  letter-spacing: -.015em;
+  width: 88%;
+}
+
+/*
+ * No mobile o título flui numa caixa de 88%, então as linhas ficam inline.
+ * No desktop cada linha vira um bloco com máscara, para a Fase 5 fazer a
+ * linha subir de trás dela.
+ */
+.hero__linha {
+  display: inline;
+}
+
+.hero__sub {
+  margin-top: 18px;
+  font-size: 16px;
+  line-height: 1.5;
+  max-width: 320px;
+}
+
+.hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.hero__cta .pill {
+  min-height: 48px;
+}
+
+/* o título fica sobre a foto escura: itálico e traço em menta */
+.hero__copy em {
+  color: var(--menta);
+}
+
+.hero__copy .link-fio::after {
+  background: var(--menta);
+}
+
+.hero__role {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .hero {
+    min-height: 100vh;
+    background: var(--creme);
+    color: var(--tinta);
+  }
+
+  /* no desktop a foto vira um blob à direita e a margem creme fica à esquerda */
+  .hero__foto {
+    inset: auto;
+    right: 0;
+    top: 5vh;
+    width: 48vw;
+    height: 90vh;
+    border-radius: 44% 56% 52% 48% / 62% 38% 62% 38%;
+  }
+
+  .hero__foto img {
+    object-position: 50% 18%;
+  }
+
+  .hero__veu {
+    display: none;
+  }
+
+  .hero__copy {
+    left: var(--pad-l);
+    right: auto;
+    bottom: 15vh;
+    width: calc(58vw - var(--pad-l));
+    color: var(--tinta);
+  }
+
+  .hero__titulo {
+    font-size: clamp(44px, 6vw, 112px);
+    letter-spacing: -.01em;
+    width: auto;
+  }
+
+  .hero__linha {
+    display: block;
+    overflow: hidden;
+    padding-bottom: .06em;
+  }
+
+  .hero__linha > span {
+    display: block;
+  }
+
+  .hero__sub {
+    margin-top: 28px;
+    font-size: 18px;
+    max-width: 380px;
+  }
+
+  .hero__cta {
+    gap: 28px;
+    margin-top: 36px;
+  }
+
+  .hero__cta .pill {
+    min-height: 44px;
+    padding: 18px 30px;
+  }
+
+  /* sobre creme o CTA volta ao verde profundo e o itálico à esmeralda */
+  .hero__doar {
+    background: var(--verde-profundo);
+    color: var(--creme);
+  }
+
+  .hero__doar:hover {
+    background: var(--esmeralda);
+  }
+
+  .hero__copy em {
+    color: var(--esmeralda);
+  }
+
+  .hero__copy .link-fio::after {
+    background: linear-gradient(90deg, var(--menta), var(--esmeralda));
+  }
+
+  .hero__role {
+    position: absolute;
+    left: var(--pad-l);
+    bottom: 34px;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 10px;
+    line-height: 1;
+    letter-spacing: .24em;
+    text-transform: uppercase;
+    color: var(--neutro-fechado);
+  }
+
+  .hero__role span:last-child {
+    display: block;
+    width: 48px;
+    height: 2px;
+    background: var(--esmeralda);
+  }
+}
+
+/* ========================================================= 02 · NÚMEROS */
+
+.numeros {
+  padding: 80px 20px 88px;
+}
+
+.numeros__grade {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+}
+
+.numeros__item {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+}
+
+/* desalinhamento intencional: esquerda, direita, esquerda, centro */
+.numeros__item[data-alinhamento='start'] {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.numeros__item[data-alinhamento='end'] {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.numeros__item[data-alinhamento='center'] {
+  align-items: center;
+  text-align: center;
+}
+
+.numeros__valor {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 112px;
+  line-height: .9;
+  letter-spacing: -.035em;
+  color: var(--creme);
+  font-variant-numeric: tabular-nums;
+}
+
+.numeros__label {
+  margin-top: 14px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--neutro);
+}
+
+.numeros__label::before {
+  content: '';
+  flex: none;
+  width: 16px;
+  height: 1.5px;
+  background: var(--menta);
+}
+
+@media (min-width: 1024px) {
+  .numeros {
+    padding: clamp(80px, 16vh, 180px) clamp(48px, 8vw, 120px) clamp(80px, 14vh, 160px)
+      var(--pad-l);
+  }
+
+  /* a faixa verde sangra de ponta a ponta; só a grade tem largura máxima */
+  .numeros__grade {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(56px, 10vh, 120px) clamp(32px, 6vw, 96px);
+    align-items: start;
+    max-width: 1200px;
+  }
+
+  /* no desktop todos ficam do mesmo tamanho e alinhados, sem sobreposição */
+  .numeros__item,
+  .numeros__item[data-alinhamento] {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .numeros__valor {
+    font-size: clamp(80px, 10vw, 170px);
+    letter-spacing: -.03em;
+  }
+
+  .numeros__label {
+    margin-top: 28px;
+    font-size: 11px;
+    letter-spacing: .2em;
+  }
+
+  .numeros__label::before {
+    width: 18px;
+    height: 2px;
+  }
+}
+
+/* ====================================================== 03 · QUEM SOMOS */
+
+.quem {
+  background: var(--creme);
+  padding-top: 80px;
+  padding-bottom: 72px;
+}
+
+.quem__titulo {
+  position: relative;
+  z-index: 2;
+  margin-top: 18px;
+  width: 90%;
+}
+
+.quem__texto {
+  margin-top: 22px;
+}
+
+/* a foto e os pilares sangram 24px para a esquerda, até a linha do fio */
+.quem__foto {
+  position: relative;
+  z-index: 2;
+  margin: 40px 0 0 -24px;
+  width: 350px;
+  max-width: calc(100% + 24px);
+  height: 400px;
+}
+
+.quem__legenda {
+  position: absolute;
+  right: 28px;
+  bottom: 36px;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 22px;
+  line-height: 1.2;
+  color: var(--creme);
+  text-shadow: 0 1px 12px rgba(11, 46, 34, .8);
+  transform: rotate(-4deg);
+}
+
+.quem__pilares {
+  margin: 40px 0 0 -24px;
+  display: flex;
+  flex-direction: column;
+}
+
+.quem__pilar {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  padding: 16px 0;
+  border-top: 1px solid var(--neutro);
+}
+
+.quem__pilar:last-child {
+  border-bottom: 1px solid var(--neutro);
+}
+
+.quem__pilar::before {
+  content: '';
+  flex: none;
+  width: 18px;
+  height: 1.5px;
+  background: var(--esmeralda);
+  transform: translateY(-4px);
+}
+
+.quem__pilar-rotulo {
+  flex: none;
+  width: 56px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--neutro-fechado);
+}
+
+.quem__pilar-texto {
+  font-size: 15px;
+  line-height: 1.4;
+}
+
+@media (min-width: 1024px) {
+  .quem {
+    padding-top: clamp(80px, 16vh, 180px);
+    padding-bottom: clamp(60px, 10vh, 120px);
+  }
+
+  .quem__grade {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 380px), 1fr));
+    gap: 56px clamp(40px, 7vw, 120px);
+    align-items: start;
+  }
+
+  .quem__titulo {
+    margin-top: 22px;
+    width: auto;
+  }
+
+  /* no desktop a foto ganha legenda ao lado, não sobreposta */
+  .quem__moldura {
+    position: relative;
+    margin-top: 56px;
+    display: flex;
+    align-items: flex-end;
+    gap: 20px;
+    max-width: 440px;
+  }
+
+  .quem__foto {
+    margin: 0;
+    flex: 0 0 58%;
+    width: auto;
+    max-width: none;
+    height: auto;
+    aspect-ratio: 4 / 5;
+    transform: rotate(-3deg);
+  }
+
+  .quem__legenda {
+    position: static;
+    padding-bottom: 18px;
+    font-size: 20px;
+    line-height: 1.3;
+    color: var(--esmeralda);
+    text-shadow: none;
+  }
+
+  .quem__coluna-texto {
+    padding-top: clamp(0px, 6vh, 80px);
+  }
+
+  .quem__texto {
+    margin-top: 0;
+    font-size: clamp(17px, 1.3vw, 20px);
+    line-height: 1.6;
+    max-width: 560px;
+  }
+
+  /* três colunas separadas por linha fina, como no desktop source */
+  .quem__pilares {
+    margin: 48px 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr));
+  }
+
+  .quem__pilar {
+    display: block;
+    padding: 0 24px;
+    border-top: 0;
+    border-right: 1px solid var(--neutro);
+  }
+
+  .quem__pilar:first-child {
+    padding-left: 0;
+  }
+
+  .quem__pilar:last-child {
+    padding-right: 0;
+    border-right: 0;
+    border-bottom: 0;
+  }
+
+  .quem__pilar::before {
+    display: none;
+  }
+
+  .quem__pilar-rotulo {
+    width: auto;
+    font-size: 11px;
+  }
+
+  .quem__pilar-texto {
+    display: block;
+    margin-top: 12px;
+    line-height: 1.5;
+  }
+}
+
+/* =================================================== 04 · NOSSA HISTÓRIA */
+
+.historia {
+  background: var(--creme);
+  padding: 80px 0 0;
+}
+
+.historia__cabecalho {
+  padding-left: 44px;
+  padding-right: 20px;
+}
+
+.historia__titulo {
+  position: relative;
+  z-index: 2;
+  margin-top: 18px;
+  width: 88%;
+}
+
+.historia__frase {
+  margin-top: 20px;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 19px;
+  line-height: 1.35;
+  color: var(--tinta);
+}
+
+/* faixa de respiro entre marcos, só o fio passando */
+.historia__respiro {
+  height: 72px;
+}
+
+.historia__marco {
+  position: relative;
+}
+
+/* layout A: ano na vertical à esquerda, foto sangrando para a direita */
+.historia__marco--a .historia__capa {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  align-items: start;
+}
+
+.historia__ano-vertical {
+  display: block;
+  padding-left: 44px;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 72px;
+  line-height: .9;
+  letter-spacing: -.03em;
+  color: var(--esmeralda);
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  height: 250px;
+  text-align: right;
+}
+
+.historia__foto-a {
+  height: 250px;
+  overflow: hidden;
+}
+
+.historia__foto-a img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--foto-filtro);
+}
+
+/* layout B: foto full-bleed com o ano em creme sobreposto */
+.historia__foto-b {
+  position: relative;
+  height: 320px;
+  overflow: hidden;
+}
+
+.historia__foto-b img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: var(--foto-filtro);
+}
+
+.historia__foto-b::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(11, 46, 34, 0) 40%, rgba(11, 46, 34, .75));
+}
+
+.historia__ano-sobreposto {
+  position: absolute;
+  left: 44px;
+  bottom: 22px;
+  z-index: 1;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 72px;
+  line-height: .9;
+  letter-spacing: -.03em;
+  color: var(--creme);
+}
+
+.historia__texto {
+  padding: 20px 20px 0 44px;
+}
+
+.historia__marco-titulo {
+  display: block;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.historia__marco-desc {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+/* --- desktop: a seção é pinada e o fio vira a linha do tempo horizontal --- */
+
+.historia-desktop {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .historia-mobile {
+    display: none;
+  }
+
+  .historia-desktop {
+    display: block;
+    position: relative;
+    height: 450vh;
+    background: var(--creme);
+  }
+
+  .historia-desktop__palco {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+  }
+
+  .historia-desktop__trilho {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    display: flex;
+    will-change: transform;
+  }
+
+  .historia-desktop__fio {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+  }
+
+  .historia-desktop__abertura {
+    flex: none;
+    width: 60vw;
+    height: 100%;
+    position: relative;
+  }
+
+  .historia-desktop__cabecalho {
+    position: absolute;
+    left: var(--pad-l);
+    top: 14vh;
+    width: calc(60vw - var(--pad-l) - 40px);
+  }
+
+  .historia-desktop__origem {
+    position: absolute;
+    left: var(--pad-l);
+    bottom: 12vh;
+    width: 34vw;
+  }
+
+  .historia-desktop__origem p {
+    margin-top: 12px;
+    font-size: 16px;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  .historia-desktop__marco {
+    flex: none;
+    width: 520px;
+    height: 100%;
+    position: relative;
+  }
+
+  .historia-desktop__ponto {
+    position: absolute;
+    left: 0;
+    top: calc(50% - 5px);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--esmeralda);
+  }
+
+  .historia-desktop__cartao {
+    position: absolute;
+    left: 24px;
+    width: 440px;
+    display: flex;
+    flex-direction: column;
+    gap: clamp(6px, 1.4vh, 14px);
+  }
+
+  /* marcos alternam acima e abaixo do fio */
+  .historia-desktop__marco[data-acima='true'] .historia-desktop__cartao {
+    bottom: 53%;
+  }
+
+  .historia-desktop__marco[data-acima='false'] .historia-desktop__cartao {
+    top: 53%;
+  }
+
+  .historia-desktop__ano {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(44px, 8.5vh, 104px);
+    line-height: .9;
+    letter-spacing: -.03em;
+    color: var(--tinta);
+  }
+
+  .historia-desktop__foto {
+    width: clamp(150px, 24vh, 230px);
+    height: clamp(120px, 20vh, 200px);
+  }
+
+  .historia-desktop__marco-titulo {
+    margin-top: 4px;
+    font-family: var(--font-display);
+    font-weight: 400;
+    font-size: clamp(18px, 2.6vh, 24px);
+    line-height: 1.2;
+  }
+
+  .historia-desktop__marco-desc {
+    font-size: clamp(14px, 1.8vh, 15px);
+    line-height: 1.5;
+    max-width: 360px;
+  }
+
+  .historia-desktop__respiro {
+    flex: none;
+    width: 20vw;
+    height: 100%;
+  }
+}
+
+/* ======================================================= 05 · DIRETORIA */
+
+.diretoria {
+  background: var(--creme);
+  padding: 80px 0 88px;
+}
+
+.diretoria__cabecalho {
+  padding-left: 44px;
+  padding-right: 20px;
+}
+
+.diretoria__titulo {
+  position: relative;
+  z-index: 2;
+  margin-top: 18px;
+  width: 90%;
+}
+
+/* carrossel horizontal com scroll nativo e snap */
+.diretoria__carrossel {
+  position: relative;
+  z-index: 2;
+  margin-top: 44px;
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  padding: 0 20px 8px 44px;
+  scroll-snap-type: x mandatory;
+  /* sem isto o snap alinharia o primeiro card comendo o padding da esquerda */
+  scroll-padding-left: 44px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.diretoria__card {
+  flex: none;
+  width: 220px;
+  scroll-snap-align: start;
+}
+
+.diretoria__retrato {
+  width: 220px;
+  height: 270px;
+}
+
+.diretoria__nome {
+  display: block;
+  margin-top: 14px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 22px;
+  line-height: 1.2;
+}
+
+.diretoria__cargo {
+  display: block;
+  margin-top: 6px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--neutro-fechado);
+}
+
+.diretoria__dica {
+  display: block;
+  margin: 20px 0 0 44px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  color: var(--neutro-fechado);
+}
+
+@media (min-width: 1024px) {
+  /* faixa de fundo mais fechada no meio da seção */
+  .diretoria {
+    padding: clamp(80px, 16vh, 180px) clamp(48px, 8vw, 120px) clamp(80px, 16vh, 180px)
+      var(--pad-l);
+    background: linear-gradient(
+      180deg,
+      var(--creme) 0%,
+      var(--creme) 18%,
+      var(--creme-fundo) 18%,
+      var(--creme-fundo) 82%,
+      var(--creme) 82%
+    );
+  }
+
+  .diretoria__cabecalho {
+    padding: 0;
+  }
+
+  .diretoria__titulo {
+    margin-top: 22px;
+    max-width: 820px;
+    width: auto;
+  }
+
+  /* mural livre de 12 colunas: cada retrato num tamanho e numa altura */
+  .diretoria__carrossel {
+    margin-top: clamp(48px, 8vh, 96px);
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: 40px clamp(16px, 2vw, 32px);
+    overflow: visible;
+    padding: 0;
+    scroll-snap-type: none;
+  }
+
+  .diretoria__card {
+    width: auto;
+    grid-column: var(--coluna);
+    margin-top: var(--recuo);
+  }
+
+  .diretoria__retrato {
+    width: auto;
+    height: auto;
+    aspect-ratio: 4 / 5;
+  }
+
+  .diretoria__nome {
+    margin-top: 16px;
+  }
+
+  .diretoria__cargo {
+    margin-top: 8px;
+    font-size: 11px;
+    letter-spacing: .18em;
+  }
+
+  .diretoria__dica {
+    display: none;
+  }
+}
+
+/* ======================================================== 06 · ATUAÇÃO */
+
+.atuacao {
+  padding-top: 72px;
+  padding-bottom: 80px;
+}
+
+.atuacao__frases {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.atuacao__frase {
+  position: relative;
+  z-index: 2;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 32px;
+  line-height: 1.12;
+  letter-spacing: -.01em;
+}
+
+.atuacao__titulo,
+.atuacao__colunas {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  /* no desktop a atuação volta para o creme, e com ela os rótulos e itálicos */
+  .atuacao {
+    display: block;
+    background: var(--creme);
+    color: var(--tinta);
+    padding-top: clamp(60px, 12vh, 140px);
+    padding-bottom: clamp(60px, 12vh, 140px);
+  }
+
+  .atuacao em {
+    color: var(--esmeralda);
+  }
+
+  .atuacao .rotulo,
+  .atuacao .rotulo-simples {
+    color: var(--neutro-fechado);
+  }
+
+  .atuacao .rotulo::before {
+    background: linear-gradient(90deg, var(--menta), var(--esmeralda));
+  }
+
+  /* no desktop a atuação vira título + três colunas de texto, sobre creme */
+  .atuacao__frases {
+    display: none;
+  }
+
+  .atuacao__titulo {
+    display: block;
+    max-width: 760px;
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-size: clamp(36px, 4vw, 64px);
+    line-height: 1.08;
+    letter-spacing: -.015em;
+    text-wrap: pretty;
+  }
+
+  .atuacao__colunas {
+    display: grid;
+    margin-top: clamp(56px, 12vh, 140px);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+    gap: 40px clamp(32px, 5vw, 80px);
+  }
+
+  .atuacao__coluna p {
+    margin-top: 14px;
+    font-size: 16px;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+}
+
+/* ======================================================== 07 · PROJETOS */
+
+.projetos {
+  background: var(--creme);
+  padding-top: 80px;
+  padding-bottom: 40px;
+}
+
+.projetos__titulo {
+  position: relative;
+  z-index: 2;
+  margin-top: 18px;
+}
+
+.projetos__filtros {
+  margin-top: 28px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+}
+
+.projetos__filtro {
+  position: relative;
+  background: none;
+  border: 0;
+  padding: 10px 0;
+  min-height: 44px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1;
+  letter-spacing: .04em;
+  color: var(--neutro-fechado);
+  cursor: pointer;
+  transition: color .3s var(--ease-out);
+}
+
+.projetos__filtro::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 6px;
+  width: 100%;
+  height: 1.5px;
+  background: linear-gradient(90deg, var(--menta), var(--esmeralda));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .4s var(--ease-out);
+}
+
+.projetos__filtro[aria-pressed='true'] {
+  color: var(--tinta);
+}
+
+.projetos__filtro[aria-pressed='true']::after {
+  transform: scaleX(1);
+}
+
+.projetos__lista {
+  margin-top: 36px;
+  display: flex;
+  flex-direction: column;
+  gap: 64px;
+}
+
+/* as fotos alternam o lado para onde sangram */
+.projetos__foto {
+  position: relative;
+  width: 330px;
+  max-width: calc(100% + 40px);
+  height: 280px;
+}
+
+.projetos__card[data-lado='left'] .projetos__foto {
+  margin-left: -40px;
+  z-index: 2;
+}
+
+.projetos__card[data-lado='right'] .projetos__foto {
+  margin-left: 36px;
+  z-index: 0;
+}
+
+.projetos__status {
+  display: block;
+  margin-top: 22px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 10px;
+  line-height: 1;
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  color: var(--neutro-fechado);
+}
+
+.projetos__card[data-status='Em andamento'] .projetos__status {
+  color: var(--esmeralda);
+}
+
+.projetos__nome {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: -.01em;
+}
+
+.projetos__objetivo {
+  margin-top: 10px;
+  font-size: 15px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.projetos__publico {
+  display: none;
+}
+
+/* a barra de progresso é uma cópia curta do fio */
+.projetos__meta {
+  margin-top: 18px;
+}
+
+.projetos__barra {
+  position: relative;
+  height: 1.5px;
+  background: var(--neutro);
+}
+
+.projetos__barra-cheia {
+  position: absolute;
+  left: 0;
+  top: 0;
+  height: 100%;
+  width: var(--progresso);
+  background: linear-gradient(90deg, var(--menta), var(--esmeralda));
+}
+
+.projetos__meta-texto {
+  display: block;
+  margin-top: 8px;
+  font-size: 13px;
+  line-height: 1;
+}
+
+.projetos__depoimento {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .projetos {
+    padding-top: clamp(80px, 14vh, 160px);
+    padding-bottom: clamp(40px, 6vh, 80px);
+  }
+
+  .projetos__cabecalho {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 32px;
+  }
+
+  .projetos__titulo {
+    margin-top: 22px;
+  }
+
+  .projetos__filtros {
+    margin-top: 0;
+    gap: 28px;
+    padding-bottom: 10px;
+  }
+
+  .projetos__filtro {
+    padding: 8px 0;
+  }
+
+  .projetos__filtro::after {
+    height: 2px;
+  }
+
+  .projetos__lista {
+    margin-top: clamp(56px, 10vh, 120px);
+    gap: 0;
+  }
+
+  /* zigue-zague: foto de um lado, texto do outro, alternando */
+  .projetos__card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: clamp(24px, 5vw, 80px);
+    margin-bottom: clamp(72px, 14vh, 160px);
+  }
+
+  .projetos__card[data-lado='right'] {
+    flex-direction: row-reverse;
+  }
+
+  .projetos__foto,
+  .projetos__card[data-lado='left'] .projetos__foto,
+  .projetos__card[data-lado='right'] .projetos__foto {
+    flex: 1 1 340px;
+    width: auto;
+    max-width: 600px;
+    height: auto;
+    aspect-ratio: 5 / 4;
+    margin-left: 0;
+    z-index: 0;
+  }
+
+  .projetos__corpo {
+    flex: 1 1 300px;
+    max-width: 460px;
+  }
+
+  .projetos__status {
+    margin-top: 0;
+    font-size: 11px;
+  }
+
+  .projetos__nome {
+    margin: 14px 0 0;
+    font-size: clamp(30px, 3vw, 46px);
+  }
+
+  .projetos__objetivo {
+    margin-top: 14px;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .projetos__publico {
+    display: block;
+    margin-top: 12px;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 12px;
+    line-height: 1.5;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--neutro-fechado);
+  }
+
+  .projetos__meta {
+    margin-top: 24px;
+    max-width: 340px;
+  }
+
+  .projetos__barra {
+    height: 2px;
+    border-radius: 2px;
+  }
+
+  .projetos__barra-cheia {
+    border-radius: 2px;
+  }
+
+  .projetos__meta-texto {
+    margin-top: 10px;
+  }
+
+  .projetos__depoimento {
+    display: block;
+    margin-top: 32px;
+  }
+
+  .projetos__depoimento p {
+    font-family: var(--font-display);
+    font-weight: 300;
+    font-style: italic;
+    font-size: clamp(19px, 1.5vw, 22px);
+    line-height: 1.4;
+  }
+
+  .projetos__depoimento footer {
+    margin-top: 10px;
+    font-size: 13px;
+    line-height: 1;
+    color: var(--neutro-fechado);
+  }
+}
+
+/* ===================================================== 08 · COMO AJUDAR */
+
+.ajudar {
+  min-height: 100svh;
+  padding-top: 120px;
+  padding-bottom: 80px;
+}
+
+/* o coração que o fio fecha, atrás do título */
+.ajudar__coracao {
+  position: absolute;
+  left: 78px;
+  top: 64px;
+  width: 234px;
+  height: auto;
+  z-index: 0;
+  overflow: visible;
+  opacity: .95;
+}
+
+.ajudar__titulo {
+  position: relative;
+  z-index: 2;
+  margin-top: 18px;
+  width: 92%;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 44px;
+  line-height: 1.02;
+  letter-spacing: -.015em;
+  text-wrap: pretty;
+}
+
+.ajudar__blocos {
+  position: relative;
+  z-index: 2;
+}
+
+.ajudar__bloco {
+  margin-top: 56px;
+}
+
+.ajudar__bloco + .ajudar__bloco {
+  margin-top: 56px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(217, 210, 195, .3);
+}
+
+.ajudar__bloco.ajudar__bloco--voluntario {
+  margin-top: 64px;
+}
+
+/*
+ * No mobile o bloco de doação vai direto ao PIX: o rótulo "Doar" e os
+ * parágrafos de apoio só existem no desktop, onde há três colunas.
+ */
+.ajudar__doar-rotulo,
+.ajudar__doar-texto {
+  display: none;
+}
+
+.ajudar__pix-chave {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 26px;
+  line-height: 1.2;
+  letter-spacing: .1em;
+  font-variant-numeric: tabular-nums;
+  color: var(--creme);
+}
+
+.ajudar__pix-botao {
+  margin-top: 18px;
+  min-height: 56px;
+  font-size: 16px;
+}
+
+.ajudar__qr {
+  margin-top: 24px;
+  display: flex;
+  gap: 18px;
+  align-items: flex-end;
+}
+
+.ajudar__qr-quadro {
+  width: 150px;
+  height: 150px;
+  flex: none;
+  background: var(--creme);
+  padding: 10px;
+}
+
+/* marcação temporária: o QR real depende do payload PIX do CNPJ */
+.ajudar__qr-falso {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: repeating-linear-gradient(0deg, #0B2E22 0 4px, transparent 4px 9px),
+    repeating-linear-gradient(90deg, #0B2E22 0 4px, transparent 4px 9px);
+}
+
+.ajudar__qr-falso span {
+  background: var(--creme);
+  padding: 4px 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.2;
+  color: var(--verde-profundo);
+  text-align: center;
+}
+
+.ajudar__qr-legenda {
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 18px;
+  line-height: 1.3;
+  color: var(--neutro);
+}
+
+.ajudar__campos {
+  margin-top: 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+/* campo só com linha inferior; o label sobe ao focar, na Fase 5 */
+.ajudar__campo {
+  position: relative;
+  display: block;
+  padding-top: 20px;
+}
+
+.ajudar__campo-label {
+  position: absolute;
+  left: 0;
+  top: 30px;
+  font-size: 16px;
+  line-height: 1;
+  color: var(--neutro);
+  pointer-events: none;
+  transform-origin: left;
+  transition: transform .3s var(--ease-out), color .3s var(--ease-out);
+}
+
+.ajudar__campo input,
+.ajudar__campo textarea {
+  width: 100%;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--neutro);
+  border-radius: 0;
+  color: var(--creme);
+  padding: 12px 0;
+  font-size: 16px;
+  line-height: 1.4;
+  outline: none;
+  resize: none;
+  min-height: 44px;
+  transition: border-color .3s var(--ease-out);
+}
+
+.ajudar__campo input:focus,
+.ajudar__campo textarea:focus,
+.ajudar__campo input:not(:placeholder-shown),
+.ajudar__campo textarea:not(:placeholder-shown) {
+  border-bottom-color: var(--menta);
+}
+
+/* o label sobe sozinho em CSS; a Fase 5 troca por GSAP */
+.ajudar__campo input:focus + .ajudar__campo-label,
+.ajudar__campo textarea:focus + .ajudar__campo-label,
+.ajudar__campo input:not(:placeholder-shown) + .ajudar__campo-label,
+.ajudar__campo textarea:not(:placeholder-shown) + .ajudar__campo-label {
+  transform: translateY(-26px) scale(.72);
+  color: var(--menta);
+}
+
+.ajudar__enviar {
+  margin-top: 28px;
+}
+
+.ajudar__parceiro-texto {
+  margin-top: 14px;
+  font-size: 15px;
+  line-height: 1.5;
+  text-wrap: pretty;
+}
+
+.ajudar__parceiro-botao {
+  margin-top: 22px;
+}
+
+.ajudar__sucesso {
+  margin-top: 36px;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-style: italic;
+  font-size: 26px;
+  line-height: 1.3;
+  color: var(--menta);
+}
+
+@media (min-width: 1024px) {
+  .ajudar {
+    min-height: 100vh;
+    padding-top: clamp(96px, 18vh, 200px);
+    padding-bottom: clamp(80px, 14vh, 160px);
+  }
+
+  .ajudar__coracao {
+    left: auto;
+    right: 6%;
+    top: 8%;
+    width: min(38vw, 520px);
+  }
+
+  .ajudar__titulo {
+    margin-top: 22px;
+    max-width: 900px;
+    width: auto;
+    font-size: clamp(44px, 6vw, 104px);
+    letter-spacing: -.02em;
+  }
+
+  /* três colunas: doar, voluntário, parceiro */
+  .ajudar__blocos {
+    margin-top: clamp(64px, 12vh, 140px);
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+    gap: 56px clamp(32px, 5vw, 80px);
+    align-items: start;
+  }
+
+  .ajudar__bloco,
+  .ajudar__bloco + .ajudar__bloco,
+  .ajudar__bloco--voluntario {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .ajudar__doar-rotulo {
+    display: block;
+  }
+
+  .ajudar__doar-texto {
+    display: block;
+    margin-top: 14px;
+    font-size: 16px;
+    line-height: 1.6;
+    text-wrap: pretty;
+  }
+
+  .ajudar__pix-rotulo {
+    margin-top: 32px;
+  }
+
+  /*
+   * O source do desktop escreve a chave em Sentient a clamp(24,2.2vw,32).
+   * O PROMPT pede Switzer com algarismos tabulares, que é bem mais largo:
+   * nesse corpo a chave quebra em duas linhas dentro da coluna. Mantemos a
+   * fonte pedida e fechamos o corpo e o tracking até caber numa linha só.
+   */
+  .ajudar__pix-chave {
+    margin-top: 8px;
+    font-size: clamp(20px, 1.9vw, 28px);
+    letter-spacing: .02em;
+  }
+
+  .ajudar__pix-botao {
+    margin-top: 20px;
+    min-height: 44px;
+    font-size: 15px;
+    width: auto;
+    display: inline-flex;
+  }
+
+  .ajudar__qr {
+    margin-top: 28px;
+  }
+
+  .ajudar__qr-quadro {
+    width: 132px;
+    height: 132px;
+  }
+
+  .ajudar__qr-legenda {
+    line-height: 1.35;
+  }
+
+  .ajudar__parceiro-texto {
+    margin-top: 14px;
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  .ajudar__parceiro-botao,
+  .ajudar__enviar {
+    margin-top: 28px;
+    width: auto;
+    display: inline-flex;
+    min-height: 44px;
+  }
+}
+
+/* ========================================================== 09 · RODAPÉ */
+
+.rodape {
+  position: relative;
+  height: 560px;
+  overflow: hidden;
+  background: var(--verde-profundo);
+  color: var(--creme);
+}
+
+.rodape__foto {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: 30% 40%;
+  filter: var(--foto-filtro);
+}
+
+.rodape__veu {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(11, 46, 34, .4), rgba(11, 46, 34, .9));
+}
+
+.rodape__conteudo {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  bottom: calc(24px + env(safe-area-inset-bottom));
+  z-index: 1;
+}
+
+.rodape__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rodape__marca span {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.rodape__frase {
+  margin-top: 22px;
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 30px;
+  line-height: 1.12;
+}
+
+.rodape__links {
+  margin-top: 22px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 18px;
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.rodape__links a {
+  color: var(--creme);
+  text-decoration: none;
+  border-bottom: 1px solid var(--menta);
+}
+
+.rodape__links span {
+  color: var(--neutro);
+}
+
+.rodape__credito {
+  margin-top: 22px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(217, 210, 195, .35);
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+  line-height: 1.4;
+  letter-spacing: .06em;
+  color: var(--neutro);
+}
+
+@media (min-width: 1024px) {
+  .rodape {
+    height: auto;
+    min-height: 72vh;
+    display: flex;
+    align-items: flex-end;
+  }
+
+  .rodape__foto {
+    object-position: 50% 40%;
+  }
+
+  .rodape__veu {
+    background: linear-gradient(180deg, rgba(11, 46, 34, .45) 0%, rgba(11, 46, 34, .88) 100%);
+  }
+
+  .rodape__conteudo {
+    position: relative;
+    left: auto;
+    right: auto;
+    bottom: auto;
+    width: 100%;
+    padding: clamp(64px, 12vh, 140px) clamp(48px, 8vw, 120px) 28px var(--pad-l);
+  }
+
+  .rodape__topo {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-end;
+    gap: 40px;
+  }
+
+  .rodape__marca span {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 14px;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+  }
+
+  .rodape__frase {
+    margin-top: 28px;
+    font-size: clamp(28px, 3vw, 44px);
+    line-height: 1.15;
+    max-width: 520px;
+  }
+
+  .rodape__links {
+    margin-top: 0;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    font-size: 15px;
+  }
+
+  .rodape__credito {
+    margin-top: 48px;
+    padding-top: 16px;
+    font-size: 11px;
+  }
+}

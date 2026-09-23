@@ -1,0 +1,25 @@
+/*
+ * Alternância mobile/desktop para os poucos casos em que o texto muda, e não
+ * só o layout: missão/visão/valores, o objetivo dos projetos, as legendas.
+ *
+ * Fica por último na cascata de propósito: qualquer regra de seção que defina
+ * `display` perderia destas se elas viessem antes.
+ */
+
+.so-mobile {
+  display: block;
+}
+
+.so-desktop {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .so-mobile {
+    display: none;
+  }
+
+  .so-desktop {
+    display: block;
+  }
+}

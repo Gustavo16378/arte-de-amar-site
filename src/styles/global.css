@@ -1,0 +1,90 @@
+@import './tokens.css';
+@import './fonts.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+ * componentes.css, header.css e secoes.css entram depois daqui, importados
+ * em main.tsx. @import só é válido no topo do arquivo, e se eles viessem
+ * antes das diretivas do Tailwind o preflight passaria por cima deles.
+ */
+
+@layer base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    background: var(--creme);
+    color: var(--tinta);
+    font-family: var(--font-body);
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* clip horizontal não trava o scroll vertical, ao contrário de overflow:hidden */
+    overflow-x: clip;
+  }
+
+  ::selection {
+    background: var(--menta);
+    color: var(--verde-profundo);
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  h1,
+  h2,
+  h3,
+  p,
+  figure,
+  blockquote {
+    margin: 0;
+  }
+
+  input,
+  textarea,
+  button,
+  select {
+    font: inherit;
+    color: inherit;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--esmeralda);
+    outline-offset: 3px;
+  }
+
+  .secao-escura :focus-visible {
+    outline-color: var(--menta);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

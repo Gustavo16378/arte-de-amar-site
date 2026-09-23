@@ -1,0 +1,268 @@
+/*
+ * Cabeçalho e navegação, layout estático da Fase 1.
+ * O comportamento (esconder ao rolar, inverter sobre seção escura, menu em
+ * portal, ScrollTo) entra na Fase 2.
+ */
+
+/* ================================================ barra fixa do mobile */
+
+.barra {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  height: calc(var(--altura-header) + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 12px 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: rgba(246, 242, 234, .82);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--neutro);
+  transition: transform .4s var(--ease-out), background .3s var(--ease-out),
+    border-color .3s var(--ease-out), color .3s var(--ease-out);
+}
+
+.barra__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: var(--tinta);
+}
+
+.barra__marca span {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.barra__coracao {
+  color: var(--esmeralda);
+  transition: color .3s var(--ease-out);
+}
+
+.barra__acoes {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.barra__doar {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 999px;
+  background: var(--verde-profundo);
+  color: var(--creme);
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 13px;
+  line-height: 1;
+  text-decoration: none;
+  transition: background .3s var(--ease-out), color .3s var(--ease-out);
+}
+
+.barra__menu {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--verde-profundo);
+  background: transparent;
+  color: var(--verde-profundo);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color .3s var(--ease-out), color .3s var(--ease-out);
+}
+
+/* o círculo tem 40px de desenho, mas 44px de área de toque */
+.barra__menu::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+}
+
+/* estado escuro: sobre Números, Nossa atuação e Como ajudar (Fase 2) */
+.barra[data-tema='escuro'] {
+  background: rgba(11, 46, 34, .82);
+  border-bottom-color: rgba(217, 210, 195, .3);
+}
+
+.barra[data-tema='escuro'] .barra__marca {
+  color: var(--creme);
+}
+
+.barra[data-tema='escuro'] .barra__coracao {
+  color: var(--menta);
+}
+
+.barra[data-tema='escuro'] .barra__doar {
+  background: var(--creme);
+  color: var(--verde-profundo);
+}
+
+.barra[data-tema='escuro'] .barra__menu {
+  border-color: var(--neutro);
+  color: var(--creme);
+}
+
+@media (min-width: 1024px) {
+  .barra {
+    display: none;
+  }
+}
+
+/* ============================== marca e Doar do topo, só no desktop */
+
+.topo-desktop {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .topo-desktop {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 28px clamp(20px, 4vw, 56px);
+    transition: opacity .5s var(--ease-out);
+  }
+
+  .topo-desktop__marca {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    text-decoration: none;
+    color: var(--verde-profundo);
+  }
+
+  .topo-desktop__logo {
+    fill: url(#logo-grad);
+  }
+
+  .topo-desktop__marca span {
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 13px;
+    line-height: 1;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+  }
+
+  .topo-desktop__doar {
+    padding: 14px 22px;
+    font-size: 14px;
+  }
+}
+
+/* ========================================= índice lateral do desktop */
+
+.indice {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .indice {
+    position: fixed;
+    left: 36px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 40;
+    display: flex;
+    gap: 20px;
+    /* aparece depois dos primeiros 40px de rolagem, na Fase 2 */
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity .5s var(--ease-out);
+  }
+
+  /* o trecho vertical do fio, que se preenche com o progresso da página */
+  .indice__trilho {
+    position: relative;
+    width: 2px;
+    border-radius: 2px;
+    background: var(--neutro);
+    align-self: stretch;
+  }
+
+  .indice__preenchimento {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 0;
+    border-radius: 2px;
+    background: linear-gradient(180deg, var(--menta), var(--esmeralda));
+  }
+
+  .indice__lista {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .indice__lista a {
+    display: block;
+    font-family: var(--font-body);
+    font-weight: 500;
+    font-size: 11px;
+    line-height: 1;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: #A39B8B;
+    text-decoration: none;
+    transition: transform .3s var(--ease-out), color .3s var(--ease-out);
+  }
+
+  .indice__lista a:hover {
+    transform: translateX(4px);
+  }
+
+  .indice__lista a[aria-current='true'] {
+    color: var(--esmeralda);
+  }
+}
+
+/* ============================= botão Doar flutuante, só no desktop */
+
+.doar-flutuante {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .doar-flutuante {
+    position: fixed;
+    right: 28px;
+    bottom: calc(22px + env(safe-area-inset-bottom));
+    z-index: 50;
+    display: inline-flex;
+    padding: 16px 24px;
+    font-size: 14px;
+    /* aparece depois do hero e some ao entrar em Como ajudar, na Fase 2 */
+    opacity: 0;
+    transform: translateY(12px);
+    pointer-events: none;
+    transition: opacity .5s var(--ease-out), transform .5s var(--ease-out),
+      background .3s var(--ease-out);
+  }
+}
+
+/* o conteúdo começa abaixo da barra fixa do mobile */
+@media (max-width: 1023px) {
+  .pagina {
+    padding-top: 0;
+  }
+}

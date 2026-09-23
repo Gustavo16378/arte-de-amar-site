@@ -1,0 +1,31 @@
+:root {
+  /* paleta fixa, da prancha de estilo */
+  --creme: #F6F2EA;
+  --creme-fundo: #EFE9DC;          /* faixa da Diretoria no desktop */
+  --tinta: #1C1F1D;
+  --verde-profundo: #0B2E22;
+  --esmeralda: #1FA86B;
+  --menta: #6FE3B0;
+  --neutro: #D9D2C3;
+  --neutro-fechado: #8E8676;       /* labels sobre creme, por legibilidade */
+  --terracota: #E08A5B;            /* raríssimo */
+
+  --font-display: 'Sentient', Georgia, 'Times New Roman', serif;
+  --font-body: 'Switzer', 'Helvetica Neue', Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, Menlo, Consolas, monospace;
+
+  --ease-out: cubic-bezier(.2, .8, .2, 1);
+  --ease-cortina: cubic-bezier(.7, 0, .2, 1);
+
+  /* margem esquerda reservada para o índice lateral no desktop */
+  --pad-l: 48px;
+  /* tratamento padrão das fotos */
+  --foto-filtro: sepia(.12) saturate(1.05) contrast(.95);
+  --altura-header: 64px;
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --pad-l: max(200px, 12vw);
+  }
+}
