@@ -59,11 +59,12 @@ export function Preloader({ aoTerminar }: Props) {
      */
     const fioHero = reduzido ? null : visivelEntre('[data-fio="hero"] .fio__traco')
     if (fioHero) {
-      gsap
-        .timeline({ delay: 2.5 })
-        .fromTo(fioHero, { drawSVG: '0%' }, { drawSVG: '30%', duration: 1, ease: 'power2.out' })
-        // TODO Fase 4: o scrub assume daqui; esta cauda sai junto
-        .to(fioHero, { drawSVG: '100%', duration: 0.8, ease: 'none' })
+      // daqui em diante quem desenha é o scrub do próprio hero
+      gsap.fromTo(
+        fioHero,
+        { drawSVG: '0%' },
+        { drawSVG: '30%', duration: 1, ease: 'power2.out', delay: 2.5 },
+      )
     }
 
     const ctx = gsap.context(() => {

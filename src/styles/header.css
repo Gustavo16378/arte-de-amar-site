@@ -373,6 +373,12 @@
     pointer-events: auto;
   }
 
+  /* na linha do tempo pinada, quem marca o progresso é o próprio fio */
+  .na-linha-do-tempo .indice[data-visivel] {
+    opacity: 0;
+    pointer-events: none;
+  }
+
   /* o trecho vertical do fio, que se preenche com o progresso da página */
   .indice__trilho {
     position: relative;

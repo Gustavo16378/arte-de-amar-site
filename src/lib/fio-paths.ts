@@ -45,7 +45,11 @@ export const FIO_DESKTOP: Record<SecaoFio, string> = {
   atuacao: 'M15 0 C15 22 15 42 32 45 C52 48 70 44 84 56 C96 66 90 88 85 100',
   // zigue-zague acompanhando o alinhamento alternado dos cards
   projetos: 'M85 0 C85 12 30 14 25 28 C20 42 78 40 76 56 C74 72 28 70 26 84 C24 94 42 96 50 100',
-  // entra ao centro e curva até a fenda superior do coração
+  /*
+   * Valor de partida. O path real é recalculado em CoracaoDoFio.tsx a partir
+   * da caixa do coração na tela, porque o fio tem que terminar exatamente na
+   * fenda, e ela muda de lugar com a largura da janela.
+   */
   ajudar: 'M50 0 C50 12 70 14 70 30',
 }
 

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { Botao } from '../Botao'
+import { CoracaoDoFio } from '../CoracaoDoFio'
 import { Fio } from '../Fio'
 import { comEnfase } from '../Titulo'
 import { AJUDAR, SITE } from '../../content/site'
-import { CORACAO_TRACOS, CORACAO_VIEWBOX } from '../../lib/heart-path'
 
 /**
  * Como ajudar. O fio chega ao centro, curva e termina na fenda superior do
@@ -141,40 +141,3 @@ export function ComoAjudar() {
     </section>
   )
 }
-
-/**
- * O coração em contorno que o fio fecha. Os cinco traços já vêm desenhados;
- * a Fase 4 liga o DrawSVG na ordem lóbulo esquerdo, lóbulo direito, base em V,
- * figura de cima, figura de baixo.
- */
-function CoracaoDoFio() {
-  return (
-    <svg
-      className="ajudar__coracao"
-      data-coracao=""
-      viewBox={CORACAO_VIEWBOX}
-      fill="none"
-      stroke="var(--menta)"
-      strokeWidth="2"
-      strokeLinejoin="round"
-      strokeLinecap="round"
-      aria-hidden="true"
-      focusable="false"
-    >
-      {CORACAO_TRACOS.map((t) =>
-        t.tipo === 'path' ? (
-          <path key={t.nome} d={t.d} vectorEffect="non-scaling-stroke" />
-        ) : (
-          <circle
-            key={t.nome}
-            cx={t.cx}
-            cy={t.cy}
-            r={t.r}
-            vectorEffect="non-scaling-stroke"
-          />
-        ),
-      )}
-    </svg>
-  )
-}
-

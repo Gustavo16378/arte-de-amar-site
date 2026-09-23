@@ -1,4 +1,5 @@
-import { useMemo, useState, type CSSProperties } from 'react'
+import { useMemo, useState } from 'react'
+import { BarraDoFio } from '../BarraDoFio'
 import { Blob } from '../Blob'
 import { Fio } from '../Fio'
 import { comEnfase } from '../Titulo'
@@ -53,7 +54,6 @@ export function Projetos() {
         <div className="projetos__lista">
           {lista.map((p, i) => {
             const lado = i % 2 === 0 ? 'left' : 'right'
-            const pct = p.meta ? Math.round((p.meta[0] / p.meta[1]) * 100) : 0
 
             return (
               <article
@@ -78,24 +78,12 @@ export function Projetos() {
                   <span className="projetos__publico">{p.publico}</span>
 
                   {p.meta && (
-                    <div className="projetos__meta">
-                      <div
-                        className="projetos__barra"
-                        role="progressbar"
-                        aria-valuenow={p.meta[0]}
-                        aria-valuemin={0}
-                        aria-valuemax={p.meta[1]}
-                        aria-label={`Progresso de ${p.nome}`}
-                      >
-                        <div
-                          className="projetos__barra-cheia"
-                          style={{ '--progresso': `${pct}%` } as CSSProperties}
-                        />
-                      </div>
-                      <span className="projetos__meta-texto">
-                        {p.meta[0]} de {p.meta[1]} {p.meta[2]}
-                      </span>
-                    </div>
+                    <BarraDoFio
+                      feito={p.meta[0]}
+                      total={p.meta[1]}
+                      unidade={p.meta[2]}
+                      rotulo={p.nome}
+                    />
                   )}
 
                   <blockquote className="projetos__depoimento">

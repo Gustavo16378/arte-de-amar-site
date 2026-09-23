@@ -543,6 +543,31 @@
   position: relative;
 }
 
+/*
+ * O ponto que acende quando o fio chega. Fica em cima da linha do fio, que
+ * corre a 20px da borda (x=5% de 390), e acende com scale 0 → 1.
+ */
+.historia__ponto {
+  position: absolute;
+  left: 20px;
+  z-index: 2;
+  width: 8px;
+  height: 8px;
+  margin-left: -4px;
+  border-radius: 50%;
+  background: var(--menta);
+  box-shadow: 0 0 0 2px var(--creme);
+}
+
+/* o A tem a capa de 250px; o B, a foto de 320px com o ano no pé */
+.historia__marco--a .historia__ponto {
+  top: 121px;
+}
+
+.historia__marco--b .historia__ponto {
+  top: 262px;
+}
+
 /* layout A: ano na vertical à esquerda, foto sangrando para a direita */
 .historia__marco--a .historia__capa {
   display: grid;
@@ -640,16 +665,23 @@
     display: none;
   }
 
+  /*
+   * A altura vem do pin do ScrollTrigger, não de um valor fixo: o percurso
+   * depende de quantos marcos existem e da largura da janela.
+   */
+  /*
+   * Altura automática, de propósito: quem a define é o palco de 100vh mais o
+   * espaçador que o pin do ScrollTrigger insere. Uma altura fixa aqui
+   * recortaria o espaçador e a Diretoria subiria por cima da linha do tempo.
+   */
   .historia-desktop {
     display: block;
     position: relative;
-    height: 450vh;
     background: var(--creme);
   }
 
   .historia-desktop__palco {
-    position: sticky;
-    top: 0;
+    position: relative;
     height: 100vh;
     overflow: hidden;
   }
@@ -705,6 +737,15 @@
     width: 520px;
     height: 100%;
     position: relative;
+    opacity: .3;
+    transform: translateY(30px);
+    transition: opacity .9s var(--ease-out), transform 1s var(--ease-out);
+  }
+
+  /* acende quando a ponta do fio o alcança */
+  .historia-desktop__marco.esta-aceso {
+    opacity: 1;
+    transform: none;
   }
 
   .historia-desktop__ponto {
@@ -1125,13 +1166,17 @@
   background: var(--neutro);
 }
 
-.projetos__barra-cheia {
+/* a barra é um traço do fio, com a mesma ponta arredondada */
+.projetos__barra-svg {
   position: absolute;
-  left: 0;
-  top: 0;
+  inset: 0;
+  width: 100%;
   height: 100%;
-  width: var(--progresso);
-  background: linear-gradient(90deg, var(--menta), var(--esmeralda));
+  overflow: visible;
+}
+
+.projetos__barra-svg path {
+  stroke-width: 1.5;
 }
 
 .projetos__meta-texto {
@@ -1250,8 +1295,8 @@
     border-radius: 2px;
   }
 
-  .projetos__barra-cheia {
-    border-radius: 2px;
+  .projetos__barra-svg path {
+    stroke-width: 2;
   }
 
   .projetos__meta-texto {
@@ -1738,5 +1783,28 @@
     margin-top: 48px;
     padding-top: 16px;
     font-size: 11px;
+  }
+}
+
+/*
+ * Sem movimento, o desktop usa a versão vertical da história. A pinada
+ * depende de rolagem para avançar na horizontal: sem ela, metade da linha do
+ * tempo ficaria inalcançável.
+ */
+@media (min-width: 1024px) and (prefers-reduced-motion: reduce) {
+  /* numa tela larga a coluna vertical precisa de um limite, senão fica perdida */
+  .historia-mobile {
+    display: block;
+    max-width: 680px;
+    margin-inline: auto;
+  }
+
+  /* o fio da história só existe no path do mobile; aqui ele é o que vale */
+  .historia-mobile .fio__traco--mobile {
+    display: block;
+  }
+
+  .historia-desktop {
+    display: none;
   }
 }

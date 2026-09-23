@@ -35,7 +35,7 @@ separando o motion abaixo da dobra, se o Lighthouse pedir.
 src/
   content/      textos, números, marcos, membros, projetos e o catálogo de fotos
   styles/       tokens, fontes, base, componentes, header, seções, visibilidade
-  lib/          paths do fio, paths do coração, máscaras orgânicas
+  lib/          gsap e lenis, paths do fio e do coração, máscaras orgânicas
   components/   peças reutilizadas e uma pasta sections/ com as nove seções
   hooks/        direção da rolagem, tema do header, estado da navegação, scroll lock
 scripts/
@@ -57,11 +57,11 @@ regra de seção que defina `display`.
 3. **Preloader** — concluído. Coração desenhando com DrawSVG, "Arte de Amar"
    escrito à mão, porcentagem, preenchimento e pulso, cortina e nascimento do
    fio. Só na primeira visita da sessão.
-4. O fio: DrawSVG com scrub em todas as seções, continuidade entre elas, o
-   coração fechando em Como ajudar, o fio como linha do tempo e como barra de
-   progresso.
-5. Motions de seção: SplitText, contadores, máscaras, parallax, timeline pinada,
-   carrossel, filtro de projetos.
+4. **O fio** — concluída. DrawSVG com scrub em todas as seções, continuidade
+   entre elas, o coração fechando em Como ajudar, o fio como linha do tempo
+   pinada no desktop e como barra de progresso nas campanhas com meta.
+5. Motions de seção: SplitText, contadores, máscaras abrindo, parallax,
+   carrossel mobile, transição do filtro de projetos.
 6. Acabamento: WebP, reduced-motion, OG, favicon, acessibilidade, Lighthouse.
 
 ## Decisões da Fase 1
@@ -151,6 +151,40 @@ Onde o design não fechava sozinho, a escolha foi esta:
 - **A cauda que completa o fio do hero até 100% é temporária.** Ela existe para
   o fio não ficar cortado em 30% enquanto a Fase 4 não liga o scrub, e está
   marcada com TODO no `Preloader.tsx`.
+
+## Decisões da Fase 4
+
+- **Um `gsap.matchMedia` por fio.** Os dois paths, mobile e desktop, ficam no
+  DOM e a media query esconde um. O matchMedia anima só o visível e refaz a
+  conta sozinho quando a largura cruza o breakpoint, sem medir viewport em JS.
+- **O hero começa em 30%, não em zero.** É onde o preloader parou, saindo do
+  coração. O gatilho dele também é especial (`top top` em vez de
+  `top 80%`): com a regra geral, o hero já estaria pela metade no primeiro
+  quadro, porque o topo da seção nasce acima da linha de início.
+- **A linha do tempo do desktop é gerada, não copiada.** O path depende da
+  largura real do trilho, que depende de quantos marcos existem e do tamanho
+  da janela. A lógica está em `lib/timeline-path.ts`, portada do `measure()`
+  do source do desktop, e é refeita a cada refresh do ScrollTrigger.
+- **A altura da seção da linha do tempo é automática.** O `PROMPT.md` sugere
+  `450vh`, mas em 1440 isso dá 3150px de rolagem para um percurso de 3352px:
+  o fim do trilho ficaria inalcançável. Quem define a altura é o espaçador do
+  pin, calculado a partir do percurso real.
+- **O índice lateral sai de cena durante a linha do tempo.** Os marcos passam
+  por baixo dele e o texto colidia, uma colisão que o source estático nunca
+  mostrou porque nunca chegou a rolar. Na seção em que o próprio fio é o
+  indicador de progresso, o índice não faz falta.
+- **Sem movimento, o desktop usa a história vertical.** A versão pinada
+  depende de rolagem para avançar na horizontal: sem ela, metade da linha do
+  tempo ficaria inalcançável. A coluna ganha uma largura máxima para não se
+  perder numa tela larga.
+- **A barra de progresso é um traço do fio de verdade**, desenhado com DrawSVG
+  até a fração da meta, e não uma div com largura. Ganha a mesma ponta
+  arredondada e o mesmo degradê, agora numa variante horizontal
+  (`#fio-grad-h`), porque o degradê diagonal do fio quase não aparecia numa
+  faixa de 2px de altura.
+- **O fio de Como ajudar é recalculado a partir da caixa do coração na tela.**
+  Ele tem que terminar exatamente na fenda, e a fenda muda de lugar com a
+  largura da janela. O valor em `fio-paths.ts` é só o ponto de partida.
 
 ## Pendências para a ONG
 
