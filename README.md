@@ -75,10 +75,11 @@ Onde o design não fechava sozinho, a escolha foi esta:
   x=8% (31px em 390), mas o source do mobile, que é a versão principal, desenha
   a 20px. Usamos o `FIO_M` da prancha, que é x=5%. O `FIO.m` ficou registrado em
   `src/lib/fio-paths.ts` para consulta.
-- **Duas fotos estão com o nome trocado** no acervo: `equipe-mural.jpg` contém
-  os Big Macs do McDia Feliz e `mcdia-feliz.jpg` contém a equipe diante do
-  mural. Não mexemos nos arquivos; a troca está resolvida em
-  `src/content/fotos.ts`.
+- **Duas fotos chegaram com o nome trocado** no acervo: `equipe-mural.jpg`
+  continha os Big Macs do McDia Feliz e `mcdia-feliz.jpg` continha a equipe
+  diante do mural. Os dois arquivos foram renomeados, então hoje cada nome bate
+  com a foto. Todas as fotos passam por `src/content/fotos.ts`, que guarda
+  `src`, `alt` e dimensão de cada uma num lugar só.
 - **Chave PIX.** O `PROMPT.md` pede Switzer com algarismos tabulares, que é bem
   mais larga que a Sentient do source do desktop. No corpo original a chave
   quebrava em duas linhas dentro da coluna, então fechamos o corpo e o tracking

@@ -5,11 +5,8 @@
  * public/assets/fotos/. Todo o resto do conteúdo referencia este catálogo,
  * para que largura, altura e alt fiquem num lugar só.
  *
- * ATENÇÃO, dois arquivos estão com o nome trocado no acervo:
- *   equipe-mural.jpg  contém os Big Macs do McDia Feliz
- *   mcdia-feliz.jpg   contém a equipe diante do mural colorido
- * Mantemos os arquivos como a ONG entregou e resolvemos a troca aqui.
- * TODO se a ONG renomear os arquivos, basta trocar os dois `src` abaixo.
+ * equipe-mural.jpg e mcdia-feliz.jpg chegaram com o nome trocado no acervo
+ * e foram renomeados no repositório: hoje cada nome bate com a foto.
  */
 
 export type Foto = {
@@ -34,15 +31,13 @@ export const FOTOS = {
     altura: 2400,
   },
   equipeMural: {
-    // o arquivo chama-se mcdia-feliz.jpg, mas a foto é a do mural
-    src: '/assets/fotos/mcdia-feliz.jpg',
+    src: '/assets/fotos/equipe-mural.jpg',
     alt: 'Voluntárias e voluntários da Arte de Amar diante de um mural colorido',
     largura: 2400,
     altura: 1800,
   },
   mcdiaFeliz: {
-    // o arquivo chama-se equipe-mural.jpg, mas a foto é a do McDia Feliz
-    src: '/assets/fotos/equipe-mural.jpg',
+    src: '/assets/fotos/mcdia-feliz.jpg',
     alt: 'Mesa coberta de Big Macs preparados para o McDia Feliz',
     largura: 1800,
     altura: 2400,
