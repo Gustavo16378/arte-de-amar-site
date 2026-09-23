@@ -14,7 +14,7 @@ export function Atuacao() {
     <section
       className="secao secao-escura atuacao calha"
       data-secao="diretoria"
-      data-fundo="escuro"
+      data-dark=""
       aria-label="Nossa atuação"
     >
       <Fio secao="atuacao" cor="menta" />

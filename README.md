@@ -21,9 +21,13 @@ Confira sempre em **390x844** (mobile, que é a versão principal) e **1440x900*
 
 ## Stack
 
-React 18 + Vite + TypeScript + Tailwind. GSAP (ScrollTrigger, SplitText,
-DrawSVGPlugin, ScrollToPlugin) e Lenis entram a partir da Fase 2. Deploy no
-Cloudflare Pages: build `npm run build`, saída `dist/`.
+React 18 + Vite + TypeScript + Tailwind, GSAP (ScrollTrigger, ScrollToPlugin,
+SplitText, DrawSVGPlugin) e Lenis. Deploy no Cloudflare Pages: build
+`npm run build`, saída `dist/`.
+
+Os quatro plugins são registrados num ponto só, em `src/lib/gsap.ts`. SplitText
+e DrawSVG ainda não são usados: custam 8,4 kB gzip que a Fase 6 pode recuperar
+separando o motion abaixo da dobra, se o Lighthouse pedir.
 
 ## Estrutura
 
@@ -33,6 +37,7 @@ src/
   styles/       tokens, fontes, base, componentes, header, seções, visibilidade
   lib/          paths do fio, paths do coração, máscaras orgânicas
   components/   peças reutilizadas e uma pasta sections/ com as nove seções
+  hooks/        direção da rolagem, tema do header, estado da navegação, scroll lock
 scripts/
   gerar-og.mjs  gera public/og-image.jpg a partir da foto do hero
 ```
@@ -46,8 +51,9 @@ regra de seção que defina `display`.
 
 1. **Base** — concluída. Tokens, fontes self-hosted, conteúdo extraído dos
    sources e layout estático de todas as seções em mobile e desktop, sem motion.
-2. Navegação: header mobile com esconder/mostrar e inversão de tema, menu em
-   portal, índice lateral desktop, botão Doar flutuante, ScrollTo, Lenis.
+2. **Navegação** — concluída. Header mobile com esconder/mostrar e inversão de
+   tema, menu em portal com scroll lock, índice lateral desktop com progresso
+   do fio, botão Doar flutuante, ScrollTo e Lenis.
 3. Preloader completo, com cortina e nascimento do fio.
 4. O fio: DrawSVG com scrub em todas as seções, continuidade entre elas, o
    coração fechando em Como ajudar, o fio como linha do tempo e como barra de
@@ -70,7 +76,7 @@ Onde o design não fechava sozinho, a escolha foi esta:
   para conferir o traçado. A Fase 4 troca isso por DrawSVG com scrub.
 - **Índice lateral e botão Doar flutuante começam invisíveis**, como no
   `source.html` do desktop: eles só aparecem depois dos primeiros 40px de
-  rolagem, e esse gatilho é da Fase 2.
+  rolagem. O gatilho entrou na Fase 2.
 - **Fio do mobile a 20px da borda.** O `FIO.m` do source do desktop põe o fio a
   x=8% (31px em 390), mas o source do mobile, que é a versão principal, desenha
   a 20px. Usamos o `FIO_M` da prancha, que é x=5%. O `FIO.m` ficou registrado em
@@ -90,6 +96,33 @@ Onde o design não fechava sozinho, a escolha foi esta:
   do briefing fala em 92%; os sources são a fonte da verdade.
 - **Botão do menu com 40px de desenho e 44px de toque**, via pseudo-elemento,
   para respeitar o mínimo de acessibilidade sem engordar o círculo.
+
+## Decisões da Fase 2
+
+- **Quem rola é o Lenis, não o `scroll-behavior: smooth`.** A propriedade foi
+  removida do `html`: ela briga com o Lenis e com o ScrollTrigger. Sob
+  `prefers-reduced-motion` o Lenis nem é criado e o salto instantâneo passa a
+  ser o comportamento correto.
+- **`irPara()` usa o Lenis quando ele existe e o ScrollToPlugin quando não.**
+  O `PROMPT.md` pede ScrollToPlugin nos links, mas com o Lenis ativo o plugin
+  escreve direto no `scrollY` e o rAF do Lenis desfaz isso no quadro seguinte.
+  O plugin segue registrado e é ele quem anima no caminho sem Lenis.
+- **O menu continua montado durante a animação de saída.** A trava de rolagem
+  só solta no desmonte, então a navegação é disparada depois, e não no clique:
+  rolar com o body ainda em `position: fixed` perderia o destino.
+- **Ao destravar, quem devolve a posição é o Lenis.** Com o body fixo o
+  documento vai para o topo e o Lenis registra esse zero. Um `window.scrollTo`
+  sozinho seria desfeito no quadro seguinte, então `restaurarScroll()` usa
+  `lenis.scrollTo(y, { immediate, force })`.
+- **A inversão de tema usa um conjunto de seções ativas**, não um booleano por
+  seção. Na troca de uma seção escura para outra as duas podem cruzar a linha
+  do header no mesmo quadro, e o header não pode piscar de claro no meio.
+- **O progresso do fio no índice é escrito direto no elemento**, fora do
+  estado do React: muda a cada quadro e não vale um render. Só as chaves
+  discretas (seção ativa, topo visível, botão flutuante) passam por estado.
+- **`data-dark` marca Números, Nossa atuação, Como ajudar e o rodapé.** O hero
+  fica de fora de propósito: ele é escuro, mas o design mostra o header claro
+  sobre ele, que é o primeiro enquadramento da página.
 
 ## Pendências para a ONG
 

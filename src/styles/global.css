@@ -20,7 +20,11 @@
 
   html {
     -webkit-text-size-adjust: 100%;
-    scroll-behavior: smooth;
+    /*
+     * Nada de `scroll-behavior: smooth`: ele briga com o Lenis e com o
+     * ScrollTrigger. Quem suaviza a rolagem é o Lenis, e sob reduced motion
+     * o salto instantâneo é justamente o comportamento desejado.
+     */
   }
 
   body {

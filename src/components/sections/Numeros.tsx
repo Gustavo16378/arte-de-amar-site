@@ -15,7 +15,7 @@ export function Numeros() {
     <section
       className="secao secao-escura numeros"
       data-secao="inicio"
-      data-fundo="escuro"
+      data-dark=""
       aria-label="Números de impacto"
     >
       <Fio secao="numeros" cor="menta" />

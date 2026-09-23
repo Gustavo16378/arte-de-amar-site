@@ -35,7 +35,7 @@ export function ComoAjudar() {
       id="como-ajudar"
       className="secao secao-escura ajudar calha"
       data-secao="como-ajudar"
-      data-fundo="escuro"
+      data-dark=""
     >
       <Fio secao="ajudar" cor="menta" />
       <CoracaoDoFio />

@@ -10,7 +10,7 @@ export function Footer() {
   const ano = new Date().getFullYear()
 
   return (
-    <footer className="rodape secao-escura" data-secao="como-ajudar" data-fundo="escuro">
+    <footer className="rodape secao-escura" data-secao="como-ajudar" data-dark="">
       <img
         className="rodape__foto"
         src={FOOTER.foto.src}

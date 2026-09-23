@@ -1,7 +1,5 @@
 /*
- * Cabeçalho e navegação, layout estático da Fase 1.
- * O comportamento (esconder ao rolar, inverter sobre seção escura, menu em
- * portal, ScrollTo) entra na Fase 2.
+ * Cabeçalho, menu em tela cheia e índice lateral.
  */
 
 /* ================================================ barra fixa do mobile */
@@ -22,7 +20,12 @@
   -webkit-backdrop-filter: blur(12px);
   border-bottom: 1px solid var(--neutro);
   transition: transform .4s var(--ease-out), background .3s var(--ease-out),
-    border-color .3s var(--ease-out), color .3s var(--ease-out);
+    border-color .3s var(--ease-out);
+}
+
+/* some deslizando para cima ao rolar para baixo */
+.barra[data-escondida] {
+  transform: translateY(-100%);
 }
 
 .barra__marca {
@@ -31,6 +34,7 @@
   gap: 10px;
   text-decoration: none;
   color: var(--tinta);
+  transition: color .3s var(--ease-out);
 }
 
 .barra__marca span {
@@ -91,7 +95,8 @@
   border-radius: 50%;
 }
 
-/* estado escuro: sobre Números, Nossa atuação e Como ajudar (Fase 2) */
+/* --- tema escuro: sobre Números, Nossa atuação, Como ajudar e o rodapé --- */
+
 .barra[data-tema='escuro'] {
   background: rgba(11, 46, 34, .82);
   border-bottom-color: rgba(217, 210, 195, .3);
@@ -121,6 +126,175 @@
   }
 }
 
+/* ========================================== menu em tela cheia, mobile */
+
+.menu {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+}
+
+.menu__painel {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--verde-profundo);
+  color: var(--creme);
+}
+
+.menu__topo {
+  flex: none;
+  height: calc(var(--altura-header) + env(safe-area-inset-top));
+  padding: env(safe-area-inset-top) 12px 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(217, 210, 195, .3);
+}
+
+.menu__marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.menu__marca > span {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 18px;
+  line-height: 1;
+}
+
+.menu__coracao-marca {
+  color: var(--menta);
+}
+
+.menu__fechar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  border: 1px solid var(--neutro);
+  background: transparent;
+  color: var(--menta);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.menu__fechar::after {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  border-radius: 50%;
+}
+
+.menu__x {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  display: block;
+}
+
+.menu__x span {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 18px;
+  height: 1.5px;
+  background: var(--menta);
+}
+
+.menu__x span:first-child {
+  transform: rotate(45deg);
+}
+
+.menu__x span:last-child {
+  transform: rotate(-45deg);
+}
+
+/* o coração fica sob o X e só aparece no morph do fechamento */
+.menu__coracao-volta {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transform: rotate(-90deg);
+}
+
+.menu__itens {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 26px;
+  padding: 76px 20px 20px;
+  overflow-y: auto;
+}
+
+.menu__item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--creme);
+  font-family: var(--font-display);
+  font-weight: 300;
+  font-size: 40px;
+  line-height: 1.05;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu__traco {
+  flex: none;
+  height: 1.5px;
+  background: var(--menta);
+  transform-origin: left;
+}
+
+.menu__rodape {
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px calc(28px + env(safe-area-inset-bottom));
+  border-top: 1px solid rgba(217, 210, 195, .3);
+  font-size: 13px;
+  line-height: 1.4;
+  color: var(--neutro);
+}
+
+.menu__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+}
+
+.menu__links a,
+.menu__links button {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--menta);
+  font: inherit;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+@media (min-width: 1024px) {
+  .menu {
+    display: none;
+  }
+}
+
 /* ============================== marca e Doar do topo, só no desktop */
 
 .topo-desktop {
@@ -139,6 +313,12 @@
     justify-content: space-between;
     padding: 28px clamp(20px, 4vw, 56px);
     transition: opacity .5s var(--ease-out);
+  }
+
+  /* somem com fade assim que a página começa a rolar */
+  .topo-desktop[data-oculto] {
+    opacity: 0;
+    pointer-events: none;
   }
 
   .topo-desktop__marca {
@@ -183,10 +363,14 @@
     z-index: 40;
     display: flex;
     gap: 20px;
-    /* aparece depois dos primeiros 40px de rolagem, na Fase 2 */
     opacity: 0;
     pointer-events: none;
     transition: opacity .5s var(--ease-out);
+  }
+
+  .indice[data-visivel] {
+    opacity: 1;
+    pointer-events: auto;
   }
 
   /* o trecho vertical do fio, que se preenche com o progresso da página */
@@ -251,18 +435,17 @@
     display: inline-flex;
     padding: 16px 24px;
     font-size: 14px;
-    /* aparece depois do hero e some ao entrar em Como ajudar, na Fase 2 */
     opacity: 0;
     transform: translateY(12px);
     pointer-events: none;
     transition: opacity .5s var(--ease-out), transform .5s var(--ease-out),
       background .3s var(--ease-out);
   }
-}
 
-/* o conteúdo começa abaixo da barra fixa do mobile */
-@media (max-width: 1023px) {
-  .pagina {
-    padding-top: 0;
+  /* aparece depois do hero e some ao entrar em Como ajudar */
+  .doar-flutuante[data-visivel] {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
   }
 }

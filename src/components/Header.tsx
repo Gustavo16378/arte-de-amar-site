@@ -1,60 +1,145 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Coracao } from './Coracao'
+import { MenuMobile } from './MenuMobile'
 import { NAV, SITE } from '../content/site'
+import { useScrollDirection } from '../hooks/useScrollDirection'
+import { useTemaEscuro } from '../hooks/useTemaEscuro'
+import { useNavegacao } from '../hooks/useNavegacao'
+import { irPara } from '../lib/lenis'
+import { ScrollTrigger } from '../lib/gsap'
+
+const ALTURA_HEADER = 64
 
 /**
- * Cabeçalho, layout estático.
+ * Cabeçalho e navegação.
  *
- * Mobile: barra fixa de 64px, creme translúcido com blur, marca à esquerda e
- * "Doar" + botão circular à direita. Nunca hambúrguer de três linhas.
+ * Mobile: barra fixa de 64px que some ao rolar para baixo e volta ao rolar
+ * para cima, e inverte para o tema escuro sobre as seções `data-dark`.
+ * O botão circular abre o menu em tela cheia, montado em portal.
  *
- * Desktop: marca no canto superior esquerdo, "Doar" no canto superior direito
- * e o índice lateral fixo à esquerda, com um trecho vertical do fio ao lado.
- *
- * O comportamento (esconder ao rolar, inverter sobre seção escura, abrir o
- * menu em portal, ScrollTo e Lenis) entra na Fase 2.
+ * Desktop: marca e "Doar" no topo, que somem depois dos primeiros 40px; no
+ * lugar deles entra o índice lateral, com um trecho vertical do fio que se
+ * preenche conforme o progresso da página. O "Doar" volta como botão
+ * flutuante depois do hero e some ao chegar em Como ajudar.
  */
 export function Header() {
+  const [menuAberto, setMenuAberto] = useState(false)
+  const preenchimento = useRef<HTMLDivElement>(null)
+
+  const direcao = useScrollDirection()
+  const escuro = useTemaEscuro(ALTURA_HEADER)
+  const { ativo, rolou, mostraDoar } = useNavegacao(preenchimento)
+
+  // a barra só se esconde quando o menu está fechado
+  const barraEscondida = direcao === 'baixo' && !menuAberto
+
+  const navegar = useCallback((id: string) => {
+    irPara(`#${id}`, ALTURA_HEADER)
+  }, [])
+
+  // o ScrollTrigger precisa remedir depois que as fontes assentam o layout
+  useEffect(() => {
+    let vivo = true
+    document.fonts?.ready.then(() => {
+      if (vivo) ScrollTrigger.refresh()
+    })
+    return () => {
+      vivo = false
+    }
+  }, [])
+
   return (
     <>
       {/* ------------------------------------------------- barra mobile */}
-      <header className="barra" data-barra="">
-        <a className="barra__marca" href="#inicio">
+      <header
+        className="barra"
+        data-tema={escuro ? 'escuro' : 'claro'}
+        data-escondida={barraEscondida ? '' : undefined}
+      >
+        <a
+          className="barra__marca"
+          href="#inicio"
+          onClick={(e) => {
+            e.preventDefault()
+            navegar('inicio')
+          }}
+        >
           <Coracao largura={24} className="barra__coracao" />
           <span>{SITE.nome}</span>
         </a>
 
         <div className="barra__acoes">
-          <a className="barra__doar" href="#como-ajudar">
+          <a
+            className="barra__doar"
+            href="#como-ajudar"
+            onClick={(e) => {
+              e.preventDefault()
+              navegar('como-ajudar')
+            }}
+          >
             Doar
           </a>
-          <button className="barra__menu" type="button" aria-label="Abrir o menu">
+          <button
+            className="barra__menu"
+            type="button"
+            onClick={() => setMenuAberto(true)}
+            aria-label="Abrir o menu"
+            aria-expanded={menuAberto}
+          >
             <Coracao variante="contorno" largura={18} />
           </button>
         </div>
       </header>
 
+      <MenuMobile
+        aberto={menuAberto}
+        aoFechar={() => setMenuAberto(false)}
+        aoNavegar={navegar}
+      />
+
       {/* ------------------------------- marca e Doar do topo, no desktop */}
-      <div className="topo-desktop" data-topo="">
-        <a className="topo-desktop__marca" href="#inicio">
+      <div className="topo-desktop" data-oculto={rolou ? '' : undefined}>
+        <a
+          className="topo-desktop__marca"
+          href="#inicio"
+          onClick={(e) => {
+            e.preventDefault()
+            navegar('inicio')
+          }}
+        >
           {/* o gradiente do logo vem do CSS, que ganha do fill do atributo */}
           <Coracao largura={30} className="topo-desktop__logo" />
           <span>{SITE.nome}</span>
         </a>
-        <a className="pill pill--escuro topo-desktop__doar" href="#como-ajudar">
+        <a
+          className="pill pill--escuro topo-desktop__doar"
+          href="#como-ajudar"
+          onClick={(e) => {
+            e.preventDefault()
+            navegar('como-ajudar')
+          }}
+        >
           <Coracao variante="contorno" largura={16} preencheNoHover />
           Doar
         </a>
       </div>
 
       {/* ------------------------------------- índice lateral do desktop */}
-      <nav className="indice" aria-label="Seções">
+      <nav className="indice" aria-label="Seções" data-visivel={rolou ? '' : undefined}>
         <div className="indice__trilho">
-          <div className="indice__preenchimento" data-indice-preenchimento="" />
+          <div ref={preenchimento} className="indice__preenchimento" />
         </div>
         <ul className="indice__lista">
           {NAV.map((n) => (
             <li key={n.id}>
-              <a href={`#${n.id}`} data-indice-item={n.id}>
+              <a
+                href={`#${n.id}`}
+                aria-current={ativo === n.id ? 'true' : undefined}
+                onClick={(e) => {
+                  e.preventDefault()
+                  navegar(n.id)
+                }}
+              >
                 {n.label}
               </a>
             </li>
@@ -63,7 +148,15 @@ export function Header() {
       </nav>
 
       {/* ------------------------------- botão Doar flutuante do desktop */}
-      <a className="pill pill--escuro doar-flutuante" href="#como-ajudar">
+      <a
+        className="pill pill--escuro doar-flutuante"
+        href="#como-ajudar"
+        data-visivel={mostraDoar ? '' : undefined}
+        onClick={(e) => {
+          e.preventDefault()
+          navegar('como-ajudar')
+        }}
+      >
         <Coracao variante="contorno" largura={16} preencheNoHover />
         Doar
       </a>
