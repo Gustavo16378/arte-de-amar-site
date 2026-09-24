@@ -26,8 +26,13 @@ Na primeira vez isso leva uns segundos; depois só refaz o que mudou.
 Confira sempre em **390x844** (mobile, que é a versão principal) e
 **1440x900** (desktop). Até 1023px vale o layout mobile.
 
-`?nopre` na URL pula o preloader, para conferir o resto da página sem esperar
-a abertura.
+**A abertura roda a cada carregamento da página**, no celular e no desktop,
+mesmo para quem já a viu. `?nopre` na URL pula o preloader, para conferir o
+resto da página sem esperar os quatro segundos a cada recarga.
+
+Um detalhe em aberto: quem chega direto num âncora, como `/#como-ajudar`,
+termina no topo da página, porque o preloader trava a rolagem enquanto roda.
+Se isso passar a importar, dá para rolar até a âncora quando a cortina sobe.
 
 ---
 
@@ -64,8 +69,8 @@ Medido no build de produção, com o Chrome do Playwright.
 
 | | Performance | Acessibilidade | Boas práticas | SEO |
 |---|---|---|---|---|
-| **Mobile**, primeira visita | **92** | **100** | **100** | **100** |
-| **Mobile**, visita seguinte | **91** | **100** | **100** | **100** |
+| **Mobile** | **92** | **100** | **100** | **100** |
+| **Mobile**, com `?nopre` | **91** | **100** | **100** | **100** |
 | **Desktop** | **100** | **100** | **100** | **100** |
 
 Métricas do mobile: FCP 2,0s · LCP 3,0s · TBT 120ms · CLS 0,038 · SI 2,0s.
@@ -263,7 +268,7 @@ Tudo marcado com `TODO` no código.
 2. **Navegação** — header mobile, menu em portal com scroll lock, índice
    lateral, botão Doar flutuante, ScrollTo e Lenis.
 3. **Preloader** — coração desenhando, escrita à mão, cortina e nascimento do
-   fio. Uma vez por sessão.
+   fio. Roda a cada carregamento da página.
 4. **O fio** — desenho com scrub em todas as seções, continuidade entre elas,
    o coração fechando, a linha do tempo pinada e a barra de progresso.
 5. **Motions de seção** — SplitText, contadores, máscaras, parallax,

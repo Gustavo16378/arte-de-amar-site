@@ -5,25 +5,18 @@ import { aplicarTraco, TRACO_DESENHAVEL, tweenDoTraco } from '../lib/desenho'
 import { CORACAO_PRELOADER, CORACAO_VIEWBOX } from '../lib/heart-path'
 import { SITE } from '../content/site'
 
-const CHAVE_SESSAO = 'aa-preloader'
-
 /*
- * O preloader roda uma vez por sessão: quem volta de uma página interna ou
- * recarrega não espera a abertura de novo.
+ * A abertura roda a cada carregamento da página, no celular e no desktop,
+ * mesmo que o visitante já a tenha visto. É decisão da ONG: o preloader é a
+ * assinatura do site, e eles querem que ele apareça sempre.
  *
- * O `?nopre` na URL pula a abertura de qualquer jeito. Serve para conferir o
- * resto da página sem esperar quatro segundos, e é a mesma saída que o
+ * O `?nopre` na URL pula a abertura. Serve para conferir o resto da página
+ * sem esperar quatro segundos a cada recarga, e é a mesma saída que o
  * source.html de referência tinha.
  */
 function devePular() {
   if (typeof window === 'undefined') return true
-  if (new URLSearchParams(location.search).has('nopre')) return true
-  try {
-    return Boolean(sessionStorage.getItem(CHAVE_SESSAO))
-  } catch {
-    // navegação privada pode barrar o sessionStorage: aí roda toda vez
-    return false
-  }
+  return new URLSearchParams(location.search).has('nopre')
 }
 
 /** true quando a abertura vai rodar; o hero espera por ela para animar */
@@ -46,7 +39,7 @@ type Props = {
  * vez, e a tela sobe em cortina enquanto o fio do hero nasce do ponto onde o
  * coração estava.
  *
- * Só na primeira visita da sessão. Com `prefers-reduced-motion` o roteiro
+ * Roda a cada carregamento da página. Com `prefers-reduced-motion` o roteiro
  * inteiro vira um fade de 0.4s sobre o estado final.
  */
 export function Preloader({ aoTerminar }: Props) {
@@ -60,12 +53,6 @@ export function Preloader({ aoTerminar }: Props) {
 
   useEffect(() => {
     if (!visivel || !raiz.current) return
-
-    try {
-      sessionStorage.setItem(CHAVE_SESSAO, '1')
-    } catch {
-      /* sem sessionStorage a abertura aparece de novo, e tudo bem */
-    }
 
     const reduzido = window.matchMedia('(prefers-reduced-motion: reduce)').matches
 
