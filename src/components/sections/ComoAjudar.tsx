@@ -1,8 +1,9 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { useMotionProximo } from '../../hooks/useMotionProximo'
 import { gsap } from '../../lib/gsap'
 import { revelar, revelarLinhas, semMovimento } from '../../lib/motion'
 import { Botao } from '../Botao'
+import { IconeInstagram } from '../IconeInstagram'
 import { CoracaoDoFio } from '../CoracaoDoFio'
 import { Fio } from '../Fio'
 import { comEnfase } from '../Titulo'
@@ -56,6 +57,28 @@ export function ComoAjudar() {
 
     return () => mm.revert()
   })
+
+  /*
+   * Sem backend: o envio abre uma conversa no WhatsApp da ONG com a mensagem
+   * já escrita. Quem recebe o contato é a diretoria, no telefone dela.
+   */
+  function enviar(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    const dados = new FormData(e.currentTarget)
+    const nome = String(dados.get('nome') ?? '').trim()
+    const texto = String(dados.get('como') ?? '').trim()
+
+    const mensagem = AJUDAR.voluntario.mensagem
+      .replace('{nome}', nome)
+      .replace('{texto}', texto || 'o que for preciso')
+
+    window.open(
+      `https://wa.me/${SITE.whatsappNumero}?text=${encodeURIComponent(mensagem)}`,
+      '_blank',
+      'noopener,noreferrer',
+    )
+    setEnviado(true)
+  }
 
   async function copiarPix() {
     try {
@@ -142,14 +165,7 @@ export function ComoAjudar() {
         </div>
 
         {/* --------------------------------------------------- VOLUNTÁRIO */}
-        <form
-          className="ajudar__bloco ajudar__bloco--voluntario"
-          onSubmit={(e) => {
-            e.preventDefault()
-            // TODO sem backend nesta fase: a Fase 6 liga num mailto ou no WhatsApp
-            setEnviado(true)
-          }}
-        >
+        <form className="ajudar__bloco ajudar__bloco--voluntario" onSubmit={enviar}>
           <span className="rotulo-simples">{AJUDAR.voluntario.rotulo}</span>
           <p className="ajudar__doar-texto">{AJUDAR.voluntario.texto}</p>
 
@@ -187,15 +203,15 @@ export function ComoAjudar() {
             {AJUDAR.parceiro.textoDesktop}
           </p>
 
-          <Botao
-            href={SITE.whatsapp}
-            aparencia="creme"
-            largo
-            comCoracao
-            className="ajudar__parceiro-botao"
-          >
-            {AJUDAR.parceiro.botao}
-          </Botao>
+          <div className="ajudar__parceiro-botoes">
+            <Botao href={SITE.whatsapp} aparencia="creme" comCoracao largo>
+              {AJUDAR.parceiro.botao}
+            </Botao>
+            <Botao href={SITE.instagramUrl} aparencia="contorno-creme" largo>
+              <IconeInstagram />
+              {AJUDAR.parceiro.botaoInstagram}
+            </Botao>
+          </div>
         </div>
       </div>
     </section>

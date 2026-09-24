@@ -15,17 +15,68 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  background: rgba(246, 242, 234, .82);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--neutro);
-  transition: transform .4s var(--ease-out), background .3s var(--ease-out),
-    border-color .3s var(--ease-out);
+  color: var(--tinta);
+
+  /*
+   * A borda existe sempre no DOM, transparente no topo: assim ela aparece
+   * mudando de cor, e não empurrando o conteúdo 1px para baixo quando
+   * entra.
+   */
+  border-bottom: 1px solid transparent;
+  background-color: transparent;
+  /* prefixo antes do padrão: invertido, o minificador descarta o padrão */
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+
+  /* propriedades explícitas, nunca all */
+  transition: transform .4s var(--ease-out), background-color .3s var(--ease-out),
+    backdrop-filter .3s var(--ease-out), border-color .3s var(--ease-out),
+    color .3s var(--ease-out);
+}
+
+/* a partir dos primeiros 40px de rolagem a barra ganha corpo */
+.barra[data-rolou] {
+  background-color: rgba(246, 242, 234, .9);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  border-bottom-color: #D9D2C3;
 }
 
 /* some deslizando para cima ao rolar para baixo */
 .barra[data-escondida] {
   transform: translateY(-100%);
+}
+
+/*
+ * Com o menu aberto a barra sobe acima do overlay, senão o X ficaria atrás
+ * dele e sem clique. Ali ela fica limpa: só a marca e o X, em creme, sobre
+ * o painel e sobre o véu.
+ */
+.barra[data-menu] {
+  z-index: 10000;
+  background-color: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  border-bottom-color: transparent;
+  color: var(--creme);
+}
+
+.barra[data-menu] .barra__marca {
+  color: var(--creme);
+}
+
+.barra[data-menu] .barra__coracao {
+  color: var(--menta);
+}
+
+.barra[data-menu] .barra__menu {
+  color: var(--creme);
+}
+
+/* o pill Doar sai de cena: o painel tem o seu próprio */
+.barra[data-menu] .barra__doar {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .barra__marca {
@@ -77,7 +128,8 @@
   font-size: 13px;
   line-height: 1;
   text-decoration: none;
-  transition: background .3s var(--ease-out), color .3s var(--ease-out);
+  transition: background .3s var(--ease-out), color .3s var(--ease-out),
+    opacity .3s var(--ease-out);
 }
 
 /* o pill tem 36px de desenho, como no design, e 44px de toque */
@@ -87,35 +139,36 @@
   inset: -4px 0;
 }
 
+/*
+ * Hambúrguer, só no mobile, à direita do pill Doar. Os ícones vêm do
+ * lucide-react; é a única exceção à regra de não usar biblioteca de ícones,
+ * combinada para o header e para o botão do Instagram.
+ */
 .barra__menu {
   position: relative;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   padding: 0;
-  border-radius: 50%;
-  border: 1px solid var(--verde-profundo);
+  border: 0;
+  border-radius: 8px;
   background: transparent;
   color: var(--verde-profundo);
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: border-color .3s var(--ease-out), color .3s var(--ease-out);
-}
-
-/* o círculo tem 40px de desenho, mas 44px de área de toque */
-.barra__menu::after {
-  content: '';
-  position: absolute;
-  inset: -2px;
-  border-radius: 50%;
+  transition: color .3s var(--ease-out), background-color .3s var(--ease-out);
 }
 
 /* --- tema escuro: sobre Números, Nossa atuação, Como ajudar e o rodapé --- */
 
 .barra[data-tema='escuro'] {
-  background: rgba(11, 46, 34, .82);
-  border-bottom-color: rgba(217, 210, 195, .3);
+  color: var(--creme);
+}
+
+.barra[data-tema='escuro'][data-rolou] {
+  background-color: rgba(11, 46, 34, .9);
+  border-bottom-color: rgba(217, 210, 195, .25);
 }
 
 .barra[data-tema='escuro'] .barra__marca {
@@ -132,7 +185,6 @@
 }
 
 .barra[data-tema='escuro'] .barra__menu {
-  border-color: var(--neutro);
   color: var(--creme);
 }
 

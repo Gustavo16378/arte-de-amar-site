@@ -57,24 +57,6 @@ export function retomarLenis() {
   instancia?.start()
 }
 
-/**
- * Devolve a página à posição `y`, sem animação.
- *
- * Existe por causa do menu: com o body em `position: fixed` o documento vai
- * para o topo, e o Lenis registra esse zero como sendo a rolagem atual. Um
- * `window.scrollTo` sozinho seria desfeito no quadro seguinte, quando o rAF
- * do Lenis reaplicasse o valor que ele guardou. Por isso quem manda aqui é o
- * próprio Lenis, com `immediate` e `force`.
- */
-export function restaurarScroll(y: number) {
-  if (!instancia) {
-    window.scrollTo(0, y)
-    return
-  }
-  instancia.resize()
-  instancia.scrollTo(y, { immediate: true, force: true })
-}
-
 /* ------------------------------------------------ rolagem programática */
 
 /**
@@ -102,6 +84,34 @@ function marcarRolagemProgramada(ativo: boolean) {
 export function observarRolagemProgramada(ouvinte: (ativo: boolean) => void) {
   ouvintes.add(ouvinte)
   return () => ouvintes.delete(ouvinte)
+}
+
+/**
+ * Devolve a página à posição `y`, sem animação.
+ *
+ * O salto conta como rolagem programática: sem isso, voltar de 0 para onde o
+ * visitante estava seria lido como "rolou para baixo" e o header sumiria
+ * justo na hora em que o menu fecha.
+ *
+ * Existe por causa do menu: com o body em `position: fixed` o documento vai
+ * para o topo, e o Lenis registra esse zero como sendo a rolagem atual. Um
+ * `window.scrollTo` sozinho seria desfeito no quadro seguinte, quando o rAF
+ * do Lenis reaplicasse o valor que ele guardou. Por isso quem manda aqui é o
+ * próprio Lenis, com `immediate` e `force`.
+ */
+export function restaurarScroll(y: number) {
+  marcarRolagemProgramada(true)
+  const soltar = () => marcarRolagemProgramada(false)
+
+  if (!instancia) {
+    window.scrollTo(0, y)
+    requestAnimationFrame(soltar)
+    return
+  }
+
+  instancia.resize()
+  instancia.scrollTo(y, { immediate: true, force: true })
+  requestAnimationFrame(soltar)
 }
 
 /**

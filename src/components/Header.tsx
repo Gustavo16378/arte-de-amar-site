@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Menu, X } from 'lucide-react'
 import { Coracao } from './Coracao'
 import { MenuMobile } from './MenuMobile'
 import { NAV, SITE } from '../content/site'
@@ -14,8 +15,9 @@ const ALTURA_HEADER = 64
  * Cabeçalho e navegação.
  *
  * Mobile: barra fixa de 64px que some ao rolar para baixo e volta ao rolar
- * para cima, e inverte para o tema escuro sobre as seções `data-dark`.
- * O botão circular abre o menu em tela cheia, montado em portal.
+ * para cima. No topo da página ela é transparente e sem borda; assim que a
+ * página rola, ganha fundo, blur e a borda inferior. Sobre as seções
+ * `data-dark` o mesmo, invertido. O hambúrguer abre o painel lateral.
  *
  * Desktop: marca e "Doar" no topo, que somem depois dos primeiros 40px; no
  * lugar deles entra o índice lateral, com um trecho vertical do fio que se
@@ -54,7 +56,9 @@ export function Header() {
       <header
         className="barra"
         data-tema={escuro ? 'escuro' : 'claro'}
+        data-rolou={rolou ? '' : undefined}
         data-escondida={barraEscondida ? '' : undefined}
+        data-menu={menuAberto ? '' : undefined}
       >
         <a
           className="barra__marca"
@@ -82,11 +86,11 @@ export function Header() {
           <button
             className="barra__menu"
             type="button"
-            onClick={() => setMenuAberto(true)}
-            aria-label="Abrir o menu"
+            onClick={() => setMenuAberto((v) => !v)}
+            aria-label={menuAberto ? 'Fechar o menu' : 'Abrir o menu'}
             aria-expanded={menuAberto}
           >
-            <Coracao variante="contorno" largura={18} />
+            {menuAberto ? <X size={22} strokeWidth={1.75} /> : <Menu size={22} strokeWidth={1.75} />}
           </button>
         </div>
       </header>
@@ -95,6 +99,7 @@ export function Header() {
         aberto={menuAberto}
         aoFechar={() => setMenuAberto(false)}
         aoNavegar={navegar}
+        ativo={ativo}
       />
 
       {/* ------------------------------- marca e Doar do topo, no desktop */}

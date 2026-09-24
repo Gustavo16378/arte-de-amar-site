@@ -31,38 +31,48 @@ export function useNavegacao(preenchimento: RefObject<HTMLElement>) {
     const ajudar = document.getElementById('como-ajudar')
     let anterior = estado
 
+    const avaliar = (self: ScrollTrigger) => {
+      if (preenchimento.current) {
+        preenchimento.current.style.height = `${self.progress * 100}%`
+      }
+
+      /*
+       * A posição vem do ScrollTrigger, não de `window.scrollY`: durante um
+       * refresh ele leva a página ao topo por um instante para remedir, e ler
+       * o scroll nativo nessa janela devolvia zero. O índice lateral piscava
+       * e o "Doar" flutuante sumia sozinho.
+       */
+      const y = self.scroll()
+      const vh = window.innerHeight
+
+      let ativo = 'inicio'
+      for (const s of secoes) {
+        if (s.getBoundingClientRect().top <= vh * 0.45) ativo = s.dataset.secao ?? ativo
+      }
+
+      const topoAjudar = ajudar ? ajudar.getBoundingClientRect().top : Infinity
+      const proximo: Estado = {
+        ativo,
+        rolou: y > 40,
+        mostraDoar: y > vh * 0.85 && topoAjudar > vh * 0.55,
+      }
+
+      if (
+        proximo.ativo !== anterior.ativo ||
+        proximo.rolou !== anterior.rolou ||
+        proximo.mostraDoar !== anterior.mostraDoar
+      ) {
+        anterior = proximo
+        setEstado(proximo)
+      }
+    }
+
     const st = ScrollTrigger.create({
       start: 0,
       end: 'max',
-      onUpdate: (self) => {
-        if (preenchimento.current) {
-          preenchimento.current.style.height = `${self.progress * 100}%`
-        }
-
-        const y = window.scrollY
-        const vh = window.innerHeight
-
-        let ativo = 'inicio'
-        for (const s of secoes) {
-          if (s.getBoundingClientRect().top <= vh * 0.45) ativo = s.dataset.secao ?? ativo
-        }
-
-        const topoAjudar = ajudar ? ajudar.getBoundingClientRect().top : Infinity
-        const proximo: Estado = {
-          ativo,
-          rolou: y > 40,
-          mostraDoar: y > vh * 0.85 && topoAjudar > vh * 0.55,
-        }
-
-        if (
-          proximo.ativo !== anterior.ativo ||
-          proximo.rolou !== anterior.rolou ||
-          proximo.mostraDoar !== anterior.mostraDoar
-        ) {
-          anterior = proximo
-          setEstado(proximo)
-        }
-      },
+      onUpdate: avaliar,
+      // depois de remedir, reavalia com a posição já restaurada
+      onRefresh: avaliar,
     })
 
     return () => st.kill()

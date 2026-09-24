@@ -86,6 +86,32 @@
   }
 }
 
+/*
+ * Barra de rolagem fina em esmeralda, só onde ela é desenhada pelo sistema.
+ * No celular a barra é um indicador temporário do próprio sistema, e mexer
+ * nela só atrapalharia.
+ */
+@media (min-width: 1024px) {
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: var(--esmeralda) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--esmeralda);
+    border-radius: 4px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

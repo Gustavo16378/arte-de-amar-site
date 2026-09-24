@@ -60,8 +60,10 @@ Se isso passar a importar, dá para rolar até a âncora quando a cortina sobe.
 4. Se a ONG registrar um domínio próprio, ligue em **Custom domains** (o
    certificado sai sozinho) e troque o endereço nesses quatro arquivos.
 
-Não há backend: o formulário de voluntário ainda só mostra a confirmação na
-tela. Ligá-lo a um e-mail ou ao WhatsApp é o próximo passo.
+Não há backend: o formulário de voluntário abre uma conversa no WhatsApp da
+ONG com a mensagem já escrita ("Olá, quero ser voluntário da Arte de Amar.
+Meu nome é {nome}. Gostaria de ajudar com: {texto}"). Quem recebe o contato é
+a diretoria, no telefone dela, que ainda é um número de exemplo.
 
 ---
 
@@ -147,6 +149,18 @@ regra de seção que defina `display`.
 
 ## Decisões técnicas
 
+### Ícones
+
+O `CLAUDE.md` proíbe biblioteca de ícones e cita o Lucide pelo nome, e o
+`PROMPT.md` pede "nunca hambúrguer de três linhas". As duas regras foram
+revistas a pedido da ONG, com escopo fechado: **o `lucide-react` entra só
+no hambúrguer do header**, com os ícones `Menu` e `X`. Custa 1,7 kB gzip.
+
+O ícone do Instagram não veio de lá: a versão 1 do `lucide-react` removeu os
+ícones de marca, e `Instagram` não existe mais no pacote. Ele é um SVG
+inline em [`IconeInstagram.tsx`](src/components/IconeInstagram.tsx), no mesmo
+espírito do resto do site.
+
 ### Layout e conteúdo
 
 - **Mobile e desktop convivem no DOM.** Onde muda só o layout, resolvemos em
@@ -174,6 +188,29 @@ regra de seção que defina `display`.
 
 ### Navegação
 
+- **Header no kit padrão do time.** A borda inferior existe sempre no DOM,
+  transparente no topo: assim ela aparece mudando de cor, e não empurrando o
+  conteúdo 1px para baixo. Depois de 40px de rolagem a barra ganha fundo a
+  90%, `blur(14px)` e a borda em `#D9D2C3`; sobre as seções `data-dark`,
+  o mesmo invertido. As transições listam as propriedades uma a uma, nunca
+  `all`.
+- **O prefixo vem antes do padrão** em `backdrop-filter`. Na ordem
+  contrária o minificador descartava a versão sem prefixo e o blur não
+  aparecia.
+- **O menu entra pela direita**, em 85vw com teto de 360px, num portal no
+  body com estilos inline, fora do alcance de qualquer `overflow` ou
+  `transform` de seção. Fechado, ele fica em `opacity: 0` sem sair do DOM,
+  e o `inert` o tira também do teclado e do leitor de tela, o que o opacity
+  sozinho não faria.
+- **Com o menu aberto a barra sobe acima do overlay.** Sem isso o X ficaria
+  atrás dele e sem clique. Ali ela fica limpa, só a marca e o X em creme.
+- **Restaurar o scroll ao fechar conta como rolagem programática.** Sem isso,
+  voltar de 0 para onde o visitante estava era lido como "rolou para baixo" e
+  o header sumia justo na hora em que o menu fecha.
+- **O estado da navegação lê a posição do ScrollTrigger**, não de
+  `window.scrollY`: durante um refresh ele leva a página ao topo por um
+  instante para remedir, e ler o scroll nativo nessa janela devolvia zero. O
+  índice lateral piscava e o "Doar" flutuante sumia sozinho.
 - **Quem rola é o Lenis**, não o `scroll-behavior: smooth`, que briga com ele
   e com o ScrollTrigger. Sob `prefers-reduced-motion` o Lenis nem é criado.
 - **`irPara()` usa o Lenis quando ele existe e o ScrollToPlugin quando não.**
@@ -236,6 +273,11 @@ regra de seção que defina `display`.
   o navegador baixaria a maior versão.
 - **Todas as imagens têm `width` e `height`**, que é o que segura o layout.
   Só a do hero não é lazy.
+- **Foco só no teclado.** Tudo usa `:focus-visible`, então o contorno
+  aparece ao navegar por Tab e nunca no clique ou no toque. As únicas
+  exceções são os campos de texto, onde o `:focus` é o comportamento certo.
+- **Barra de rolagem fina em esmeralda no desktop.** No celular ela é um
+  indicador temporário do próprio sistema, e mexer nela só atrapalharia.
 - **Áreas de toque de 44px sem mexer no desenho.** O pill "Doar" tem 36px de
   altura, como no design, e os links do rodapé 21px; um pseudo-elemento
   estende a área até 44px em cada um.
@@ -253,11 +295,10 @@ Tudo marcado com `TODO` no código.
 |---|---|
 | `src/content/membros.ts` | nomes e retratos da diretoria; hoje são seis placeholders "Nome Sobrenome" com moldura listrada |
 | `src/content/site.ts` | os quatro números de impacto (11, 3.197+, 40+, 120+) são estimativas do design |
-| `src/content/site.ts` | número real do WhatsApp, hoje `5563999999999` |
+| `src/content/site.ts` | número real do WhatsApp, hoje `5563999999999`; ele serve ao botão de parceiro **e** ao envio do formulário de voluntário |
 | `src/content/site.ts` | payload PIX estático (BR Code) do CNPJ, para gerar o QR de verdade |
 | `src/content/site.ts` | crédito do rodapé, hoje "nome do estúdio" |
 | `src/content/projetos.ts` | números das metas em andamento |
-| `src/components/sections/ComoAjudar.tsx` | destino do formulário de voluntário |
 | `src/content/fotos.ts` | `triagem-roupas.jpg` e `criancas-comunidade.jpg` chegaram em 240x320 e ficam moles quando usadas grandes; pedir os originais |
 
 ---

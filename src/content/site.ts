@@ -16,6 +16,7 @@ export const SITE = {
   instagram: '@ongartedeamar',
   instagramUrl: 'https://instagram.com/ongartedeamar',
   // TODO número real da ONG, confirmar com a diretoria
+  whatsappNumero: '5563999999999',
   whatsapp: 'https://wa.me/5563999999999',
   titulo: 'Arte de Amar · ONG em Palmas, Tocantins',
   descricao:
@@ -153,6 +154,9 @@ export const AJUDAR = {
   },
   voluntario: {
     rotulo: 'Ser voluntário',
+    // o {nome} e o {texto} são trocados pelo que a pessoa escreveu
+    mensagem:
+      'Olá, quero ser voluntário da Arte de Amar. Meu nome é {nome}. Gostaria de ajudar com: {texto}',
     texto: 'Deixe seu contato. A gente chama no WhatsApp para a próxima ação.',
     campos: [
       { nome: 'nome', label: 'Seu nome', tipo: 'text' },
@@ -164,6 +168,7 @@ export const AJUDAR = {
   },
   parceiro: {
     rotulo: 'Ser parceiro',
+    botaoInstagram: 'Ver no Instagram',
     textoMobile:
       'Sua empresa pode apadrinhar uma campanha inteira, como McDonald’s, Hospital de Amor e Palmas Para a Vida já fazem.',
     textoDesktop:

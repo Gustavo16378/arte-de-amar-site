@@ -10,6 +10,8 @@ type Aparencia =
   | 'creme'
   /** só contorno menta, sobre fundo escuro */
   | 'contorno'
+  /** só contorno creme, para o secundário ao lado de um botão cheio */
+  | 'contorno-creme'
 
 type Base = {
   aparencia?: Aparencia

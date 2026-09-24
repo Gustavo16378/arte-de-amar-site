@@ -1,119 +1,112 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
-import { gsap } from '../lib/gsap'
+import { useIsMobile } from '../hooks/useIsMobile'
 import { useScrollLock } from '../hooks/useScrollLock'
-import { Coracao } from './Coracao'
 import { NAV, SITE } from '../content/site'
 
 type Props = {
   aberto: boolean
   aoFechar: () => void
-  /** chamado só depois que o menu saiu de cena e a rolagem destravou */
+  /** recebe o id da seção; quem chama fecha o menu e rola até lá */
   aoNavegar: (id: string) => void
+  /** id da seção sob a linha de leitura, para marcar o item ativo */
+  ativo: string
 }
 
-const reduzido = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches
+/*
+ * Estilos inline de propósito: o overlay e o painel vivem num portal no body,
+ * fora da árvore do <nav>, e carregar estilo junto deles evita que qualquer
+ * regra de seção, com o seu overflow ou o seu transform, interfira.
+ */
+const overlay = (aberto: boolean, mobile: boolean): CSSProperties => ({
+  display: mobile ? 'block' : 'none',
+  position: 'fixed',
+  inset: 0,
+  zIndex: 9998,
+  background: 'rgba(11, 46, 34, .6)',
+  backdropFilter: 'blur(4px)',
+  WebkitBackdropFilter: 'blur(4px)',
+  opacity: aberto ? 1 : 0,
+  pointerEvents: aberto ? 'auto' : 'none',
+  transition: 'opacity .4s cubic-bezier(.2, .8, .2, 1)',
+  border: 0,
+  padding: 0,
+  cursor: 'pointer',
+})
+
+const painel = (aberto: boolean, mobile: boolean): CSSProperties => ({
+  position: 'fixed',
+  top: 0,
+  right: 0,
+  zIndex: 9999,
+  width: '85vw',
+  maxWidth: 360,
+  height: '100dvh',
+  background: '#0B2E22',
+  color: '#F6F2EA',
+  display: mobile ? 'flex' : 'none',
+  flexDirection: 'column',
+  transform: aberto ? 'translateX(0)' : 'translateX(100%)',
+  opacity: aberto ? 1 : 0,
+  pointerEvents: aberto ? 'auto' : 'none',
+  transition: 'transform .4s cubic-bezier(.2, .8, .2, 1), opacity .4s cubic-bezier(.2, .8, .2, 1)',
+  paddingTop: 'calc(28px + env(safe-area-inset-top))',
+  paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
+  overflowY: 'auto',
+})
+
+const item = (ativo: boolean): CSSProperties => ({
+  display: 'flex',
+  alignItems: 'center',
+  gap: 16,
+  width: '100%',
+  padding: '10px 28px',
+  border: 0,
+  background: 'none',
+  color: ativo ? '#6FE3B0' : '#F6F2EA',
+  font: '300 32px/1.15 Sentient, Georgia, serif',
+  textAlign: 'left',
+  cursor: 'pointer',
+  transition: 'color .3s cubic-bezier(.2, .8, .2, 1)',
+})
+
+/** todos os traços do mesmo comprimento, como pede o kit */
+const traco = (ativo: boolean): CSSProperties => ({
+  flex: 'none',
+  width: 24,
+  height: 1.5,
+  background: ativo ? '#6FE3B0' : 'rgba(111, 227, 176, .55)',
+  transition: 'background .3s cubic-bezier(.2, .8, .2, 1)',
+})
 
 /**
- * Menu em tela cheia, montado com createPortal direto no body para escapar
- * de qualquer `transform` ou `overflow` de ancestral. Nunca hambúrguer de
- * três linhas: o botão da barra é o coração, e aqui dentro ele é um X que
- * volta a ser coração no fechamento.
+ * Menu mobile: um painel que entra da direita, com um overlay atrás.
  *
- * O painel sobe de baixo, os itens entram em stagger e cada traço do fio se
- * desenha da esquerda. Com `prefers-reduced-motion` tudo vira um fade curto.
- *
- * O componente continua montado durante a animação de saída, e só aí solta a
- * trava de rolagem. Por isso a navegação é avisada depois, e não no clique:
- * rolar com o body ainda em `position: fixed` perderia o destino.
+ * Os dois ficam sempre no DOM, montados por createPortal direto no body.
+ * Fechado, o painel não some da árvore: fica em opacity 0 e sem receber
+ * ponteiro, e o `inert` o tira também do caminho do teclado e do leitor de
+ * tela, que o opacity sozinho não faria.
  */
-export function MenuMobile({ aberto, aoFechar, aoNavegar }: Props) {
-  const [montado, setMontado] = useState(aberto)
-  const painel = useRef<HTMLDivElement>(null)
-  const botaoFechar = useRef<HTMLButtonElement>(null)
+export function MenuMobile({ aberto, aoFechar, aoNavegar, ativo }: Props) {
+  const caixa = useRef<HTMLElement>(null)
+  const primeiro = useRef<HTMLButtonElement>(null)
   const pendente = useRef<string | null>(null)
+  // o painel é só do mobile; no desktop a navegação é o índice lateral
+  const mobile = useIsMobile()
 
-  useScrollLock(montado)
+  useScrollLock(aberto)
 
-  // entrada e saída
+  // fora da vista também significa fora do teclado e do leitor de tela
   useEffect(() => {
-    if (aberto) {
-      setMontado(true)
-      return
-    }
-    if (!montado || !painel.current) return
-
-    const ctx = gsap.context(() => {
-      const tl = gsap.timeline({ onComplete: () => setMontado(false) })
-
-      if (reduzido()) {
-        tl.to('[data-menu-painel]', { opacity: 0, duration: 0.25 })
-        return
-      }
-
-      // o X gira e vira coração antes de o painel descer
-      tl.to('[data-menu-x]', { opacity: 0, rotate: 90, duration: 0.25, ease: 'power2.in' })
-        .to('[data-menu-coracao]', { opacity: 1, rotate: 0, duration: 0.25 }, '<')
-        .to('[data-menu-item]', { y: 20, opacity: 0, duration: 0.2, stagger: 0.03 }, '<')
-        .to(
-          '[data-menu-painel]',
-          { yPercent: 100, duration: 0.45, ease: 'power3.in' },
-          '-=0.1',
-        )
-    }, painel)
-
-    return () => ctx.revert()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    const el = caixa.current
+    if (!el) return
+    if (aberto) el.removeAttribute('inert')
+    else el.setAttribute('inert', '')
   }, [aberto])
 
   useEffect(() => {
-    if (!montado || !painel.current) return
-
-    const ctx = gsap.context(() => {
-      if (reduzido()) {
-        gsap.fromTo('[data-menu-painel]', { opacity: 0 }, { opacity: 1, duration: 0.3 })
-        return
-      }
-
-      gsap
-        .timeline()
-        .fromTo(
-          '[data-menu-painel]',
-          { yPercent: 100 },
-          { yPercent: 0, duration: 0.6, ease: 'expo.out' },
-        )
-        .fromTo(
-          '[data-menu-item]',
-          { y: 40, opacity: 0 },
-          { y: 0, opacity: 1, duration: 0.5, ease: 'power2.out', stagger: 0.07 },
-          '-=0.3',
-        )
-        .fromTo(
-          '[data-menu-traco]',
-          { scaleX: 0 },
-          { scaleX: 1, duration: 0.45, ease: 'power2.out', stagger: 0.07 },
-          '<',
-        )
-        .fromTo('[data-menu-rodape]', { opacity: 0 }, { opacity: 1, duration: 0.4 }, '-=0.2')
-    }, painel)
-
-    return () => ctx.revert()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [montado])
-
-  // a rolagem só acontece depois que o menu desmontou e o body voltou ao normal
-  useEffect(() => {
-    if (montado) return
-    const id = pendente.current
-    if (!id) return
-    pendente.current = null
-    requestAnimationFrame(() => aoNavegar(id))
-  }, [montado, aoNavegar])
-
-  // Esc fecha, e o foco entra no botão de fechar
-  useEffect(() => {
     if (!aberto) return
-    botaoFechar.current?.focus()
+    primeiro.current?.focus()
 
     const aoTeclar = (e: KeyboardEvent) => {
       if (e.key === 'Escape') aoFechar()
@@ -122,7 +115,18 @@ export function MenuMobile({ aberto, aoFechar, aoNavegar }: Props) {
     return () => document.removeEventListener('keydown', aoTeclar)
   }, [aberto, aoFechar])
 
-  if (!montado) return null
+  /*
+   * A rolagem espera o painel sair e a trava soltar: rolar com o body ainda
+   * em position fixed perderia o destino.
+   */
+  useEffect(() => {
+    if (aberto) return
+    const id = pendente.current
+    if (!id) return
+    pendente.current = null
+    const t = window.setTimeout(() => aoNavegar(id), 420)
+    return () => window.clearTimeout(t)
+  }, [aberto, aoNavegar])
 
   const irAte = (id: string) => {
     pendente.current = id
@@ -130,76 +134,114 @@ export function MenuMobile({ aberto, aoFechar, aoNavegar }: Props) {
   }
 
   return createPortal(
-    <div
-      ref={painel}
-      className="menu"
-      role="dialog"
-      aria-modal="true"
-      aria-label="Menu de navegação"
-    >
-      <div className="menu__painel" data-menu-painel="">
-        <div className="menu__topo">
-          <span className="menu__marca">
-            <Coracao largura={24} className="menu__coracao-marca" />
-            <span>{SITE.nome}</span>
-          </span>
-          <button
-            ref={botaoFechar}
-            type="button"
-            className="menu__fechar"
-            onClick={aoFechar}
-            aria-label="Fechar o menu"
-          >
-            <span className="menu__x" data-menu-x="" aria-hidden="true">
-              <span />
-              <span />
-            </span>
-            {/* o coração espera por baixo do X, para o morph do fechamento */}
-            <span className="menu__coracao-volta" data-menu-coracao="" aria-hidden="true">
-              <Coracao variante="contorno" largura={18} />
-            </span>
-          </button>
-        </div>
+    <>
+      <button
+        type="button"
+        style={overlay(aberto, mobile)}
+        onClick={aoFechar}
+        tabIndex={-1}
+        aria-hidden="true"
+      />
 
-        <nav className="menu__itens" aria-label="Seções">
+      <aside
+        ref={caixa}
+        style={painel(aberto, mobile)}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menu de navegação"
+      >
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: 4, marginTop: 44 }}>
           {NAV.map((n, i) => (
             <button
               key={n.id}
+              ref={i === 0 ? primeiro : undefined}
               type="button"
-              className="menu__item"
-              data-menu-item=""
+              style={item(ativo === n.id)}
+              aria-current={ativo === n.id ? 'true' : undefined}
               onClick={() => irAte(n.id)}
             >
-              {/* o traço cresce item a item, como na prancha */}
-              <span
-                className="menu__traco"
-                data-menu-traco=""
-                style={{ width: `${18 + i * 6}px` }}
-                aria-hidden="true"
-              />
+              <span style={traco(ativo === n.id)} aria-hidden="true" />
               {n.label}
             </button>
           ))}
         </nav>
 
-        <div className="menu__rodape" data-menu-rodape="">
-          <span>
+        <div
+          style={{
+            marginTop: 'auto',
+            padding: '28px 28px 0',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 14,
+          }}
+        >
+          <a
+            href="#como-ajudar"
+            onClick={(e) => {
+              e.preventDefault()
+              irAte('como-ajudar')
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: 52,
+              borderRadius: 999,
+              background: '#6FE3B0',
+              color: '#0B2E22',
+              font: '500 16px/1 Switzer, Helvetica, Arial, sans-serif',
+              textDecoration: 'none',
+            }}
+          >
+            Doar
+          </a>
+
+          <span
+            style={{
+              font: '400 13px/1.4 Switzer, Helvetica, Arial, sans-serif',
+              color: '#D9D2C3',
+            }}
+          >
             {SITE.local}, desde {SITE.desde}
           </span>
-          <span className="menu__links">
-            <a href={SITE.instagramUrl} target="_blank" rel="noopener noreferrer">
-              {SITE.instagram}
-            </a>
-            <a href={SITE.whatsapp} target="_blank" rel="noopener noreferrer">
-              WhatsApp
-            </a>
-            <button type="button" onClick={() => irAte('como-ajudar')}>
+
+          <span style={{ display: 'flex', flexWrap: 'wrap', gap: 18 }}>
+            {[
+              { rotulo: SITE.instagram, href: SITE.instagramUrl },
+              { rotulo: 'WhatsApp', href: SITE.whatsapp },
+            ].map((l) => (
+              <a
+                key={l.rotulo}
+                href={l.href}
+                target="_blank"
+                rel="noopener noreferrer"
+                style={{
+                  color: '#6FE3B0',
+                  font: '400 13px/1.4 Switzer, Helvetica, Arial, sans-serif',
+                  textDecoration: 'none',
+                }}
+              >
+                {l.rotulo}
+              </a>
+            ))}
+            <button
+              type="button"
+              onClick={() => irAte('como-ajudar')}
+              style={{
+                padding: 0,
+                border: 0,
+                background: 'none',
+                color: '#6FE3B0',
+                font: '400 13px/1.4 Switzer, Helvetica, Arial, sans-serif',
+                cursor: 'pointer',
+              }}
+            >
               PIX
             </button>
           </span>
         </div>
-      </div>
-    </div>,
+      </aside>
+    </>,
     document.body,
   )
 }
