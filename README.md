@@ -52,11 +52,13 @@ Se isso passar a importar, dá para rolar até a âncora quando a cortina sobe.
    Se o Node vier antigo, adicione a variável de ambiente
    `NODE_VERSION = 20`. O `sharp`, que gera as imagens, precisa dela.
 
-3. **Depois do primeiro deploy**, troque `https://SEU-DOMINIO/` pelo domínio
-   real em três lugares: [`index.html`](index.html) (canonical, `og:url` e
-   `og:image`), [`public/robots.txt`](public/robots.txt) e
-   [`public/sitemap.xml`](public/sitemap.xml).
-4. Domínio próprio em **Custom domains**. O certificado sai sozinho.
+3. O domínio já está apontado para `https://arte-de-amar-site.pages.dev/`
+   em [`index.html`](index.html) (canonical, `og:url`, `og:image` e
+   `twitter:image`), [`public/robots.txt`](public/robots.txt),
+   [`public/sitemap.xml`](public/sitemap.xml) e
+   [`src/content/site.ts`](src/content/site.ts).
+4. Se a ONG registrar um domínio próprio, ligue em **Custom domains** (o
+   certificado sai sozinho) e troque o endereço nesses quatro arquivos.
 
 Não há backend: o formulário de voluntário ainda só mostra a confirmação na
 tela. Ligá-lo a um e-mail ou ao WhatsApp é o próximo passo.
@@ -255,7 +257,6 @@ Tudo marcado com `TODO` no código.
 | `src/content/site.ts` | payload PIX estático (BR Code) do CNPJ, para gerar o QR de verdade |
 | `src/content/site.ts` | crédito do rodapé, hoje "nome do estúdio" |
 | `src/content/projetos.ts` | números das metas em andamento |
-| `index.html`, `robots.txt`, `sitemap.xml` | trocar `https://SEU-DOMINIO/` pelo domínio real |
 | `src/components/sections/ComoAjudar.tsx` | destino do formulário de voluntário |
 | `src/content/fotos.ts` | `triagem-roupas.jpg` e `criancas-comunidade.jpg` chegaram em 240x320 e ficam moles quando usadas grandes; pedir os originais |
 

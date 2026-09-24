@@ -20,8 +20,8 @@ export const SITE = {
   titulo: 'Arte de Amar · ONG em Palmas, Tocantins',
   descricao:
     'Organização da sociedade civil de Palmas, Tocantins. Desde 2015 acompanhamos crianças e famílias em vulnerabilidade com campanhas, voluntários e parceiros.',
-  // trocar depois do deploy no Cloudflare Pages
-  url: 'https://SEU-DOMINIO/',
+  // domínio do Cloudflare Pages; trocar se a ONG registrar um próprio
+  url: 'https://arte-de-amar-site.pages.dev/',
 } as const
 
 export const NAV = [
