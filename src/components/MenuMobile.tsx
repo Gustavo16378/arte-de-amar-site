@@ -49,7 +49,14 @@ const painel = (aberto: boolean, mobile: boolean): CSSProperties => ({
   transform: aberto ? 'translateX(0)' : 'translateX(100%)',
   opacity: aberto ? 1 : 0,
   pointerEvents: aberto ? 'auto' : 'none',
-  transition: 'transform .4s cubic-bezier(.2, .8, .2, 1), opacity .4s cubic-bezier(.2, .8, .2, 1)',
+  /*
+   * O opacity não acompanha o deslize: enquanto o painel era translúcido, a
+   * página passava por trás e desenhava traços acima e abaixo dos itens. Ele
+   * entra opaco no primeiro quadro e só apaga depois que o painel já saiu.
+   */
+  transition: aberto
+    ? 'transform .4s cubic-bezier(.2, .8, .2, 1), opacity 0s'
+    : 'transform .4s cubic-bezier(.2, .8, .2, 1), opacity 0s .4s',
   paddingTop: 'calc(28px + env(safe-area-inset-top))',
   paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
   overflowY: 'auto',

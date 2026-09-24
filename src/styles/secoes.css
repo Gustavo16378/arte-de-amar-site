@@ -24,11 +24,10 @@
   color: var(--creme);
 }
 
-/* no mobile a foto sangra inteira e só a base ganha a curva do recorte */
+/* no mobile a foto sangra inteira, como manda o source: full-bleed, sem recorte */
 .hero__foto {
   position: absolute;
   inset: 0;
-  border-radius: 0 0 46% 54% / 0 0 18% 22%;
 }
 
 .hero__foto img {

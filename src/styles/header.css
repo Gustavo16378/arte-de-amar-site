@@ -59,6 +59,8 @@
   backdrop-filter: none;
   border-bottom-color: transparent;
   color: var(--creme);
+  /* sem fade: a faixa antiga ficava visível durante a transição */
+  transition: none;
 }
 
 .barra[data-menu] .barra__marca {
@@ -169,6 +171,16 @@
 .barra[data-tema='escuro'][data-rolou] {
   background-color: rgba(11, 46, 34, .9);
   border-bottom-color: rgba(217, 210, 195, .25);
+}
+/*
+ * Com o menu aberto a barra fica limpa também sobre seção escura. A regra
+ * de tema acima tem especificidade maior que `.barra[data-menu]` e voltava
+ * a desenhar fundo e borda, que apareciam como uma linha cruzando o topo do
+ * painel, logo abaixo da marca.
+ */
+.barra[data-tema='escuro'][data-menu] {
+  background-color: transparent;
+  border-bottom-color: transparent;
 }
 
 .barra[data-tema='escuro'] .barra__marca {

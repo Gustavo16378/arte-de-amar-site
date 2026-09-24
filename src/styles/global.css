@@ -87,28 +87,50 @@
 }
 
 /*
- * Barra de rolagem fina em esmeralda, só onde ela é desenhada pelo sistema.
- * No celular a barra é um indicador temporário do próprio sistema, e mexer
- * nela só atrapalharia.
+ * Barra de rolagem fina em esmeralda.
+ *
+ * Fora de media query de propósito: o Chrome ignora `::-webkit-scrollbar`
+ * quando `scrollbar-width` ou `scrollbar-color` estão presentes no mesmo
+ * elemento, e a barra volta ao estilo clássico, com setas e trilho. Por
+ * isso as duas propriedades ficam só no Firefox, atrás do @supports.
+ *
+ * Quem rola é a raiz: o Lenis é criado sem `wrapper` nem `content`, então
+ * ele usa a window e o documento. Não existe wrapper com overflow próprio
+ * para receber essas regras.
  */
-@media (min-width: 1024px) {
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2F7A5C;
+  border-radius: 2px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3D9A75;
+}
+
+::-webkit-scrollbar-button {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* só o Firefox, que não conhece o pseudo-elemento acima */
+@supports not selector(::-webkit-scrollbar) {
   html {
     scrollbar-width: thin;
-    scrollbar-color: var(--esmeralda) transparent;
-  }
-
-  ::-webkit-scrollbar {
-    width: 4px;
-    height: 4px;
-  }
-
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
-
-  ::-webkit-scrollbar-thumb {
-    background: var(--esmeralda);
-    border-radius: 4px;
+    scrollbar-color: #2F7A5C transparent;
   }
 }
 
