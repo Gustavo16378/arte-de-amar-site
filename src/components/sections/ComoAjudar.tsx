@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
+import { gsap } from '../../lib/gsap'
+import { revelar, revelarLinhas, semMovimento } from '../../lib/motion'
 import { Botao } from '../Botao'
 import { CoracaoDoFio } from '../CoracaoDoFio'
 import { Fio } from '../Fio'
@@ -11,13 +13,48 @@ import { AJUDAR, SITE } from '../../content/site'
  *
  * Três blocos: PIX, formulário de voluntário e contato de parceiro. No mobile
  * eles se empilham separados por linhas finas; no desktop viram três colunas.
+ *
+ * Motion: o título entra por linha, os blocos em stagger, e o coração do
+ * botão do PIX preenche e pulsa uma vez quando a chave é copiada.
  */
 export function ComoAjudar() {
   const [copiada, setCopiada] = useState(false)
   const [enviado, setEnviado] = useState(false)
   const timer = useRef<number>()
+  const secao = useRef<HTMLElement>(null)
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
+
+  useEffect(() => {
+    const el = secao.current
+    if (!el) return
+
+    const mm = gsap.matchMedia()
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const cortes: ReturnType<typeof revelarLinhas>[] = []
+      let vivo = true
+
+      document.fonts?.ready.then(() => {
+        if (!vivo) return
+        const titulo = el.querySelector('.ajudar__titulo')
+        if (titulo) cortes.push(revelarLinhas(titulo, { intervalo: 0.1 }))
+      })
+
+      revelar(el.querySelector('.rotulo'), { y: 16 })
+      revelar(el.querySelectorAll('.ajudar__bloco'), {
+        y: 20,
+        intervalo: 0.12,
+        gatilho: el.querySelector('.ajudar__blocos'),
+      })
+
+      return () => {
+        vivo = false
+        for (const c of cortes) c.revert()
+      }
+    })
+
+    return () => mm.revert()
+  }, [])
 
   async function copiarPix() {
     try {
@@ -26,12 +63,27 @@ export function ComoAjudar() {
       /* sem permissão de área de transferência: a chave segue visível na tela */
     }
     setCopiada(true)
+
+    // o coração do botão preenche e pulsa uma vez
+    const coracao = secao.current?.querySelector('.ajudar__pix-botao svg')
+    if (coracao && !semMovimento()) {
+      gsap
+        .timeline()
+        .fromTo(
+          coracao,
+          { scale: 1 },
+          { scale: 1.35, duration: 0.25, ease: 'power2.out' },
+        )
+        .to(coracao, { scale: 1, duration: 0.45, ease: 'elastic.out(1, 0.5)' })
+    }
+
     window.clearTimeout(timer.current)
     timer.current = window.setTimeout(() => setCopiada(false), 2400)
   }
 
   return (
     <section
+      ref={secao}
       id="como-ajudar"
       className="secao secao-escura ajudar calha"
       data-secao="como-ajudar"
@@ -52,14 +104,16 @@ export function ComoAjudar() {
           <span className="rotulo-simples ajudar__doar-rotulo">{AJUDAR.doar.rotulo}</span>
           <p className="ajudar__doar-texto">{AJUDAR.doar.texto}</p>
 
-          <span className="rotulo-simples ajudar__pix-rotulo">{AJUDAR.doar.pixRotulo}</span>
+          <span className="rotulo-simples ajudar__pix-rotulo">
+            {AJUDAR.doar.pixRotulo}
+          </span>
           <span className="ajudar__pix-chave">{SITE.cnpj}</span>
 
           <Botao
             aparencia="menta"
             largo
             comCoracao
-            className="ajudar__pix-botao"
+            className={`ajudar__pix-botao${copiada ? ' esta-copiada' : ''}`}
             onClick={copiarPix}
           >
             {copiada ? AJUDAR.doar.botaoCopiado : AJUDAR.doar.botao}
@@ -125,8 +179,12 @@ export function ComoAjudar() {
         {/* ------------------------------------------------------ PARCEIRO */}
         <div className="ajudar__bloco ajudar__bloco--parceiro">
           <span className="rotulo-simples">{AJUDAR.parceiro.rotulo}</span>
-          <p className="ajudar__parceiro-texto so-mobile">{AJUDAR.parceiro.textoMobile}</p>
-          <p className="ajudar__parceiro-texto so-desktop">{AJUDAR.parceiro.textoDesktop}</p>
+          <p className="ajudar__parceiro-texto so-mobile">
+            {AJUDAR.parceiro.textoMobile}
+          </p>
+          <p className="ajudar__parceiro-texto so-desktop">
+            {AJUDAR.parceiro.textoDesktop}
+          </p>
 
           <Botao
             href={SITE.whatsapp}

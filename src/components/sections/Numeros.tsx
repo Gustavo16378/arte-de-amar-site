@@ -1,4 +1,7 @@
+import { useEffect, useRef } from 'react'
 import { Fio } from '../Fio'
+import { gsap } from '../../lib/gsap'
+import { contar, parallax } from '../../lib/motion'
 import { NUMEROS } from '../../content/site'
 
 const formata = (n: number) => n.toLocaleString('pt-BR')
@@ -8,11 +11,36 @@ const formata = (n: number) => n.toLocaleString('pt-BR')
  * No mobile eles descem em coluna, desalinhados de propósito: esquerda,
  * direita, esquerda, centro. No desktop viram uma grade 2x2 alinhada.
  *
- * Os contadores entram na Fase 5; aqui o número já aparece no valor final.
+ * Motion: cada número conta de 0 ao valor em 1.8s quando entra a 70% da
+ * tela, e o sufixo só aparece no fim. Um parallax mínimo dá velocidades
+ * diferentes a cada um, para a coluna não subir como um bloco só.
  */
 export function Numeros() {
+  const secao = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const el = secao.current
+    if (!el) return
+
+    const mm = gsap.matchMedia()
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      for (const item of el.querySelectorAll<HTMLElement>('.numeros__item')) {
+        const valor = item.querySelector<HTMLElement>('.numeros__valor')
+        if (valor?.dataset.contador) {
+          contar(valor, Number(valor.dataset.contador), valor.dataset.sufixo ?? '')
+        }
+        // velocidades de .04 a .07, como nas notas de motion
+        const velocidade = Number(item.dataset.velocidade ?? 0.05)
+        parallax(item, velocidade * -260, el)
+      }
+    })
+
+    return () => mm.revert()
+  }, [])
+
   return (
     <section
+      ref={secao}
       className="secao secao-escura numeros"
       data-secao="inicio"
       data-dark=""
@@ -28,7 +56,11 @@ export function Numeros() {
             data-alinhamento={n.alinhamento}
             data-velocidade={n.velocidade}
           >
-            <span className="numeros__valor" data-contador={n.valor} data-sufixo={n.sufixo}>
+            <span
+              className="numeros__valor"
+              data-contador={n.valor}
+              data-sufixo={n.sufixo}
+            >
               {formata(n.valor)}
               {n.sufixo}
             </span>

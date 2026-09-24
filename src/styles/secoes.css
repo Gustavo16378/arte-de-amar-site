@@ -209,6 +209,26 @@
     width: 48px;
     height: 2px;
     background: var(--esmeralda);
+    animation: role-estica 1.8s ease-in-out infinite;
+  }
+
+  /* o traço do indicador estica da esquerda e encolhe pela direita */
+  @keyframes role-estica {
+    0% {
+      transform: scaleX(0);
+      transform-origin: left;
+    }
+    50% {
+      transform: scaleX(1);
+      transform-origin: left;
+    }
+    50.1% {
+      transform-origin: right;
+    }
+    100% {
+      transform: scaleX(0);
+      transform-origin: right;
+    }
   }
 }
 
@@ -623,17 +643,24 @@
   background: linear-gradient(180deg, rgba(11, 46, 34, 0) 40%, rgba(11, 46, 34, .75));
 }
 
+/* máscara: o ano sobe de trás dela */
 .historia__ano-sobreposto {
   position: absolute;
   left: 44px;
   bottom: 22px;
   z-index: 1;
+  overflow: hidden;
+  padding-bottom: .06em;
   font-family: var(--font-display);
   font-weight: 300;
   font-size: 72px;
   line-height: .9;
   letter-spacing: -.03em;
   color: var(--creme);
+}
+
+.historia__ano-interno {
+  display: block;
 }
 
 .historia__texto {
@@ -858,12 +885,40 @@
 }
 
 .diretoria__nome {
-  display: block;
+  position: relative;
+  display: inline-block;
   margin-top: 14px;
   font-family: var(--font-display);
   font-weight: 400;
   font-size: 22px;
   line-height: 1.2;
+}
+
+/*
+ * O sublinhado do nome. No desktop ele se desenha no hover; no mobile, onde
+ * hover não existe, no toque (:active e :focus-within).
+ */
+.diretoria__sublinhado {
+  position: absolute;
+  left: 0;
+  bottom: -4px;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, var(--menta), var(--esmeralda));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform .5s var(--ease-out);
+}
+
+.diretoria__card:active .diretoria__sublinhado,
+.diretoria__card:focus-within .diretoria__sublinhado {
+  transform: scaleX(1);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .diretoria__card:hover .diretoria__sublinhado {
+    transform: scaleX(1);
+  }
 }
 
 .diretoria__cargo {
@@ -1050,6 +1105,7 @@
 }
 
 .projetos__filtros {
+  position: relative;
   margin-top: 28px;
   display: flex;
   flex-wrap: wrap;
@@ -1072,25 +1128,22 @@
   transition: color .3s var(--ease-out);
 }
 
-.projetos__filtro::after {
-  content: '';
-  position: absolute;
-  left: 0;
-  bottom: 6px;
-  width: 100%;
-  height: 1.5px;
-  background: linear-gradient(90deg, var(--menta), var(--esmeralda));
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform .4s var(--ease-out);
-}
-
 .projetos__filtro[aria-pressed='true'] {
   color: var(--tinta);
 }
 
-.projetos__filtro[aria-pressed='true']::after {
-  transform: scaleX(1);
+/*
+ * Um traço só do fio, que desliza de um item para o outro em vez de um
+ * traço por botão aparecendo e sumindo.
+ */
+.projetos__traco {
+  position: absolute;
+  bottom: 6px;
+  left: 0;
+  width: 0;
+  height: 1.5px;
+  background: linear-gradient(90deg, var(--menta), var(--esmeralda));
+  pointer-events: none;
 }
 
 .projetos__lista {
@@ -1218,7 +1271,7 @@
     padding: 8px 0;
   }
 
-  .projetos__filtro::after {
+  .projetos__traco {
     height: 2px;
   }
 
@@ -1395,6 +1448,15 @@
   letter-spacing: .1em;
   font-variant-numeric: tabular-nums;
   color: var(--creme);
+}
+
+/* copiada: o coração do botão fica preenchido */
+.ajudar__pix-botao.esta-copiada svg {
+  fill: currentColor;
+}
+
+.ajudar__pix-botao svg {
+  transform-origin: center;
 }
 
 .ajudar__pix-botao {

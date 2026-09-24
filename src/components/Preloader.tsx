@@ -18,6 +18,11 @@ function devePular() {
   return new URLSearchParams(location.search).has('nopre')
 }
 
+/** true quando a abertura vai rodar; o hero espera por ela para animar */
+export function preloaderVaiRodar() {
+  return !devePular()
+}
+
 type Props = {
   /** chamado quando a cortina termina de subir */
   aoTerminar?: () => void
@@ -33,8 +38,8 @@ type Props = {
  * vez, e a tela sobe em cortina enquanto o fio do hero nasce do ponto onde o
  * coração estava.
  *
- * Só na primeira visita da sessão. Com `prefers-reduced-motion` o roteiro
- * inteiro vira um fade de 0.4s sobre o estado final.
+ * Roda em toda visita. Com `prefers-reduced-motion` o roteiro inteiro vira
+ * um fade de 0.4s sobre o estado final.
  */
 export function Preloader({ aoTerminar }: Props) {
   // decidido no primeiro render, para a tela não piscar o hero antes

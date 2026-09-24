@@ -35,7 +35,7 @@ separando o motion abaixo da dobra, se o Lighthouse pedir.
 src/
   content/      textos, números, marcos, membros, projetos e o catálogo de fotos
   styles/       tokens, fontes, base, componentes, header, seções, visibilidade
-  lib/          gsap e lenis, paths do fio e do coração, máscaras orgânicas
+  lib/          gsap e lenis, desenho do traço, motion, paths do fio e do coração
   components/   peças reutilizadas e uma pasta sections/ com as nove seções
   hooks/        direção da rolagem, tema do header, estado da navegação, scroll lock
 scripts/
@@ -60,8 +60,9 @@ regra de seção que defina `display`.
 4. **O fio** — concluída. DrawSVG com scrub em todas as seções, continuidade
    entre elas, o coração fechando em Como ajudar, o fio como linha do tempo
    pinada no desktop e como barra de progresso nas campanhas com meta.
-5. Motions de seção: SplitText, contadores, máscaras abrindo, parallax,
-   carrossel mobile, transição do filtro de projetos.
+5. **Motions de seção** — concluída. SplitText por linhas, contadores,
+   máscaras abrindo, parallax, carrossel mobile, filtro de projetos com o
+   traço deslizando, entradas em stagger.
 6. Acabamento: WebP, reduced-motion, OG, favicon, acessibilidade, Lighthouse.
 
 ## Decisões da Fase 1
@@ -239,6 +240,34 @@ E mais três acertos de leitura:
 - **O coração de Como ajudar ficava encostado na direita no desktop**
   (`right: 6%` do source), colidindo com o fim do título e caindo em cima da
   terceira coluna. Passou a ser centralizado, como no mobile, atrás do título.
+
+## Decisões da Fase 5
+
+- **O estado inicial de cada motion é posto pelo GSAP, nunca pelo CSS.** Se o
+  JavaScript falhar ou o visitante pedir menos movimento, o conteúdo já está
+  no lugar e visível, em vez de ficar invisível esperando uma animação que
+  não vem. Testado: depois de rolar a página inteira, nenhum elemento fica
+  translúcido, em 390 e em 1440.
+- **O SplitText só corta depois de `document.fonts.ready`.** Antes disso as
+  quebras de linha são as da fonte de fallback, e o corte sairia nos lugares
+  errados. O `autoSplit` refaz o corte quando a largura muda.
+- **O hero espera a cortina do preloader.** O `App` guarda esse sinal e o
+  passa ao `Hero`; sem preloader, ele já começa no primeiro quadro.
+- **O ano do marco sobe de trás de uma máscara só no layout B.** No layout A
+  ele é vertical e girado 180°, onde uma máscara subiria na direção errada;
+  ali ele entra com um fade curto e deslocamento.
+- **A rotação da máscara que abre é relativa** (`'+=3'`), para o fim da
+  animação não apagar a inclinação que a moldura já tem no CSS. A foto de
+  Quem somos termina nos seus `-3°`, como antes.
+- **O parallax do carrossel da diretoria escuta o `scroll` do container**, e
+  não o ScrollTrigger: a rolagem ali é horizontal e interna, fora do alcance
+  dele.
+- **O filtro de projetos tem um traço só, que desliza** entre os itens, em vez
+  de um traço por botão aparecendo e sumindo. Na troca, os cards atuais saem
+  em fade de 0.25s e os novos entram em stagger de 0.08s; a lista só troca
+  quando a saída termina.
+- **O nome da diretoria sublinha no toque**, por `:active` e
+  `:focus-within`, já que no celular não existe hover.
 
 ## Pendências para a ONG
 

@@ -4,6 +4,7 @@ import { Fio } from '../Fio'
 import { comEnfase } from '../Titulo'
 import { gsap } from '../../lib/gsap'
 import { aplicarTraco, TRACO_DESENHAVEL } from '../../lib/desenho'
+import { EASE_ENTRADA, revelar, revelarLinhas } from '../../lib/motion'
 import { caminhoDaLinhaDoTempo, medidasDaLinhaDoTempo } from '../../lib/timeline-path'
 import { MARCOS, MARCOS_MOBILE, type Marco } from '../../content/marcos'
 import { HISTORIA } from '../../content/site'
@@ -36,8 +37,42 @@ export function Historia() {
 }
 
 function HistoriaMobile() {
+  const secao = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const el = secao.current
+    if (!el) return
+
+    const mm = gsap.matchMedia()
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      const cortes: ReturnType<typeof revelarLinhas>[] = []
+      let vivo = true
+
+      document.fonts?.ready.then(() => {
+        if (!vivo) return
+        const titulo = el.querySelector('.historia__titulo')
+        if (titulo) cortes.push(revelarLinhas(titulo, { intervalo: 0.08 }))
+        const frase = el.querySelector('.historia__frase')
+        if (frase) cortes.push(revelarLinhas(frase, { intervalo: 0.06, duracao: 0.8 }))
+      })
+
+      revelar(el.querySelector('.rotulo'), { y: 16 })
+
+      return () => {
+        vivo = false
+        for (const c of cortes) c.revert()
+      }
+    })
+
+    return () => mm.revert()
+  }, [])
+
   return (
-    <section className="secao historia historia-mobile" aria-label="Nossa história">
+    <section
+      ref={secao}
+      className="secao historia historia-mobile"
+      aria-label="Nossa história"
+    >
       <Fio secao="historia" />
 
       <div className="secao__conteudo">
@@ -63,24 +98,78 @@ function HistoriaMobile() {
 function MarcoMobile({ marco }: { marco: Marco }) {
   const ponto = useRef<HTMLSpanElement>(null)
 
-  // o ponto acende quando o fio chega nele
+  const marcoRef = useRef<HTMLElement>(null)
+
   useEffect(() => {
-    const el = ponto.current
-    if (!el) return
+    const el = marcoRef.current
+    const elPonto = ponto.current
+    if (!el || !elPonto) return
 
     const mm = gsap.matchMedia()
     mm.add('(prefers-reduced-motion: no-preference)', () => {
-      gsap.fromTo(
-        el,
-        { scale: 0 },
-        {
-          scale: 1,
-          duration: 0.5,
-          ease: 'back.out(2)',
-          scrollTrigger: { trigger: el, start: 'top 72%' },
-        },
-      )
+      // o ponto acende quando o fio chega nele
+      gsap.from(elPonto, {
+        scale: 0,
+        duration: 0.5,
+        ease: 'back.out(2)',
+        scrollTrigger: { trigger: elPonto, start: 'top 72%' },
+      })
+
+      /*
+       * O ano sobe de trás de uma máscara no layout B, onde ele é
+       * horizontal. No layout A ele é vertical e girado 180°, e uma máscara
+       * ali subiria na direção errada: melhor um fade curto com deslocamento.
+       */
+      const anoMascarado = el.querySelector('.historia__ano-interno')
+      if (anoMascarado) {
+        gsap.from(anoMascarado, {
+          yPercent: 100,
+          duration: 0.8,
+          ease: EASE_ENTRADA,
+          scrollTrigger: { trigger: el, start: 'top 78%' },
+        })
+      }
+      const anoVertical = el.querySelector('.historia__ano-vertical')
+      if (anoVertical) {
+        gsap.from(anoVertical, {
+          opacity: 0,
+          y: 24,
+          duration: 0.8,
+          ease: EASE_ENTRADA,
+          scrollTrigger: { trigger: el, start: 'top 78%' },
+        })
+      }
+
+      // a foto do layout A é revelada da esquerda para a direita
+      const fotoA = el.querySelector('.historia__foto-a')
+      if (fotoA) {
+        gsap.from(fotoA, {
+          clipPath: 'inset(0 100% 0 0)',
+          duration: 1,
+          ease: EASE_ENTRADA,
+          scrollTrigger: { trigger: fotoA, start: 'top 82%' },
+        })
+      }
+
+      // a do layout B sangra nas duas bordas: entra com escala e fade
+      const fotoB = el.querySelector('.historia__foto-b img')
+      if (fotoB) {
+        gsap.from(fotoB, {
+          scale: 1.1,
+          opacity: 0,
+          duration: 1,
+          ease: EASE_ENTRADA,
+          scrollTrigger: { trigger: fotoB, start: 'top 82%' },
+        })
+      }
+
+      revelar(el.querySelector('.historia__texto'), {
+        y: 18,
+        gatilho: el,
+        inicio: 'top 75%',
+      })
     })
+
     return () => mm.revert()
   }, [])
 
@@ -97,7 +186,10 @@ function MarcoMobile({ marco }: { marco: Marco }) {
   )
 
   return (
-    <article className={`historia__marco historia__marco--${marco.layout.toLowerCase()}`}>
+    <article
+      ref={marcoRef}
+      className={`historia__marco historia__marco--${marco.layout.toLowerCase()}`}
+    >
       <span ref={ponto} className="historia__ponto" aria-hidden="true" />
 
       {marco.layout === 'A' ? (
@@ -108,7 +200,9 @@ function MarcoMobile({ marco }: { marco: Marco }) {
       ) : (
         <div className="historia__foto-b">
           {foto}
-          <span className="historia__ano-sobreposto">{marco.ano}</span>
+          <span className="historia__ano-sobreposto">
+            <span className="historia__ano-interno">{marco.ano}</span>
+          </span>
         </div>
       )}
 
