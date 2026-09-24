@@ -61,6 +61,12 @@ export function Hero({ liberado }: Props) {
             mask: 'lines',
             autoSplit: true,
             linesClass: 'linha-motion',
+            /*
+             * Sem aria-label: o SplitText o acrescenta por padrão, e ele é proibido
+             * num <p>. Cortando por linha o texto continua inteiro e na ordem, então
+             * o leitor de tela lê normalmente sem ele.
+             */
+            aria: 'none',
             onSplit: (self) =>
               gsap.from(self.lines, {
                 yPercent: 112,
@@ -103,7 +109,13 @@ export function Hero({ liberado }: Props) {
       {/* o preloader já desenhou os primeiros 30%, saindo do coração */}
       <Fio secao="hero" de={0.3} inicio="top top" />
 
-      <Blob className="hero__foto" mascara={null} foto={FOTO_HERO} prioridade />
+      <Blob
+        className="hero__foto"
+        mascara={null}
+        foto={FOTO_HERO}
+        tamanhos="(min-width: 1024px) 48vw, 100vw"
+        prioridade
+      />
       <div className="hero__veu" aria-hidden="true" />
 
       <div className="hero__copy">

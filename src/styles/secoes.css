@@ -369,8 +369,25 @@
   height: 400px;
 }
 
+/*
+ * A legenda fica sobre a foto, e o contraste dependeria do trecho da imagem
+ * que calhasse de ficar atrás dela. Um véu escuro curto garante o mínimo de
+ * leitura em qualquer foto que a ONG venha a trocar.
+ */
+.quem__foto::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 45%;
+  background: linear-gradient(180deg, rgba(11, 46, 34, 0), rgba(11, 46, 34, .72));
+  pointer-events: none;
+}
+
 .quem__legenda {
   position: absolute;
+  z-index: 1;
   right: 28px;
   bottom: 36px;
   font-family: var(--font-display);
@@ -463,6 +480,11 @@
     height: auto;
     aspect-ratio: 4 / 5;
     transform: rotate(-3deg);
+  }
+
+  /* no desktop a legenda sai de cima da foto, então o véu não faz falta */
+  .quem__foto::after {
+    display: none;
   }
 
   .quem__legenda {
@@ -1128,6 +1150,13 @@
   transition: color .3s var(--ease-out);
 }
 
+/* 39px de desenho no item mais curto, 45px de área de toque */
+.projetos__filtro::before {
+  content: '';
+  position: absolute;
+  inset: 0 -3px;
+}
+
 .projetos__filtro[aria-pressed='true'] {
   color: var(--tinta);
 }
@@ -1769,9 +1798,17 @@
 }
 
 .rodape__links a {
+  position: relative;
   color: var(--creme);
   text-decoration: none;
   border-bottom: 1px solid var(--menta);
+}
+
+/* 21px de desenho, 44px de toque */
+.rodape__links a::before {
+  content: '';
+  position: absolute;
+  inset: -12px -6px;
 }
 
 .rodape__links span {

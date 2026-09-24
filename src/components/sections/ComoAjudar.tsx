@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
+import { useMotionProximo } from '../../hooks/useMotionProximo'
 import { gsap } from '../../lib/gsap'
 import { revelar, revelarLinhas, semMovimento } from '../../lib/motion'
 import { Botao } from '../Botao'
@@ -25,7 +26,7 @@ export function ComoAjudar() {
 
   useEffect(() => () => window.clearTimeout(timer.current), [])
 
-  useEffect(() => {
+  useMotionProximo(secao, () => {
     const el = secao.current
     if (!el) return
 
@@ -54,7 +55,7 @@ export function ComoAjudar() {
     })
 
     return () => mm.revert()
-  }, [])
+  })
 
   async function copiarPix() {
     try {

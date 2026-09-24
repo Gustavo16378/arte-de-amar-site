@@ -6,5 +6,20 @@ export default defineConfig({
   build: {
     outDir: 'dist',
     assetsInlineLimit: 2048,
+    rollupOptions: {
+      output: {
+        /*
+         * Separa as bibliotecas do código do site. Elas quase não mudam, e
+         * assim o cache do visitante sobrevive a cada publicação. De quebra,
+         * o relatório do build mostra quanto é nosso e quanto é do GSAP.
+         */
+        manualChunks(id: string) {
+          if (id.includes('node_modules/gsap')) return 'gsap'
+          if (id.includes('node_modules/lenis')) return 'lenis'
+          if (id.includes('node_modules/react')) return 'react'
+          if (id.includes('node_modules/scheduler')) return 'react'
+        },
+      },
+    },
   },
 })

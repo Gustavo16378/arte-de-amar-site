@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { useMotionProximo } from '../hooks/useMotionProximo'
 import { gsap, ScrollTrigger } from '../lib/gsap'
 import { aplicarTraco, medirFio, TRACO_DESENHAVEL } from '../lib/desenho'
 import {
@@ -34,7 +35,7 @@ const CHEGADA_DO_FIO = 0.35
 export function CoracaoDoFio() {
   const svg = useRef<SVGSVGElement>(null)
 
-  useEffect(() => {
+  useMotionProximo(svg, () => {
     const elSvg = svg.current
     if (!elSvg) return
 
@@ -142,7 +143,7 @@ export function CoracaoDoFio() {
       ScrollTrigger.removeEventListener('refreshInit', apontarParaAFenda)
       mm.revert()
     }
-  }, [])
+  })
 
   return (
     <svg

@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { useMotionProximo } from '../../hooks/useMotionProximo'
 import { Fio } from '../Fio'
 import { gsap } from '../../lib/gsap'
 import { contar, parallax } from '../../lib/motion'
@@ -18,7 +19,7 @@ const formata = (n: number) => n.toLocaleString('pt-BR')
 export function Numeros() {
   const secao = useRef<HTMLElement>(null)
 
-  useEffect(() => {
+  useMotionProximo(secao, () => {
     const el = secao.current
     if (!el) return
 
@@ -36,7 +37,7 @@ export function Numeros() {
     })
 
     return () => mm.revert()
-  }, [])
+  })
 
   return (
     <section

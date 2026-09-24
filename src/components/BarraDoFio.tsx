@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { useMotionProximo } from '../hooks/useMotionProximo'
 import { gsap } from '../lib/gsap'
 import { aplicarTraco, TRACO_DESENHAVEL } from '../lib/desenho'
 
@@ -20,7 +21,7 @@ export function BarraDoFio({ feito, total, unidade, rotulo }: Props) {
   const traco = useRef<SVGPathElement>(null)
   const fracao = Math.max(0, Math.min(1, feito / total))
 
-  useEffect(() => {
+  useMotionProximo(traco, () => {
     const el = traco.current
     if (!el) return
 

@@ -1,0 +1,6 @@
+# Arte de Amar
+# TODO trocar o domínio depois do deploy no Cloudflare Pages
+User-agent: *
+Allow: /
+
+Sitemap: https://SEU-DOMINIO/sitemap.xml

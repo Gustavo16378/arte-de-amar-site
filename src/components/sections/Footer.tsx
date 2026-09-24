@@ -1,5 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { useMotionProximo } from '../../hooks/useMotionProximo'
 import { Coracao } from '../Coracao'
+import { Foto } from '../Foto'
 import { comEnfase } from '../Titulo'
 import { gsap } from '../../lib/gsap'
 import { parallax, revelar } from '../../lib/motion'
@@ -16,7 +18,7 @@ export function Footer() {
   const ano = new Date().getFullYear()
   const rodape = useRef<HTMLElement>(null)
 
-  useEffect(() => {
+  useMotionProximo(rodape, () => {
     const el = rodape.current
     if (!el) return
 
@@ -37,7 +39,7 @@ export function Footer() {
     })
 
     return () => mm.revert()
-  }, [])
+  })
 
   return (
     <footer
@@ -46,15 +48,7 @@ export function Footer() {
       data-secao="como-ajudar"
       data-dark=""
     >
-      <img
-        className="rodape__foto"
-        src={FOOTER.foto.src}
-        alt={FOOTER.foto.alt}
-        width={FOOTER.foto.largura}
-        height={FOOTER.foto.altura}
-        loading="lazy"
-        decoding="async"
-      />
+      <Foto foto={FOOTER.foto} tamanhos="100vw" className="rodape__foto" />
       <div className="rodape__veu" aria-hidden="true" />
 
       <div className="rodape__conteudo">

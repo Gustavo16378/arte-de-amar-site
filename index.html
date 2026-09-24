@@ -53,10 +53,22 @@
       href="/assets/fontes/Switzer-400.woff2"
       crossorigin
     />
+    <!--
+      O hero é o LCP. O preload usa o mesmo srcset e sizes do <picture>, para
+      o navegador baixar exatamente a largura que vai mostrar, e não a maior.
+    -->
     <link
       rel="preload"
       as="image"
-      href="/assets/fotos/hero-menino-mochila.jpg"
+      type="image/webp"
+      href="/assets/fotos/gerado/hero-menino-mochila-960.webp"
+      imagesrcset="
+        /assets/fotos/gerado/hero-menino-mochila-400.webp 400w,
+        /assets/fotos/gerado/hero-menino-mochila-640.webp 640w,
+        /assets/fotos/gerado/hero-menino-mochila-960.webp 960w,
+        /assets/fotos/gerado/hero-menino-mochila-1280.webp 1280w,
+        /assets/fotos/gerado/hero-menino-mochila-1600.webp 1600w"
+      imagesizes="(min-width: 1024px) 48vw, 100vw"
       fetchpriority="high"
     />
   </head>

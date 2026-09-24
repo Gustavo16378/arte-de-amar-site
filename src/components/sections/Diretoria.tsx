@@ -1,4 +1,5 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useRef, type CSSProperties } from 'react'
+import { useMotionProximo } from '../../hooks/useMotionProximo'
 import { Blob } from '../Blob'
 import { Fio } from '../Fio'
 import { comEnfase } from '../Titulo'
@@ -23,7 +24,7 @@ import { DIRETORIA } from '../../content/site'
 export function Diretoria() {
   const secao = useRef<HTMLElement>(null)
 
-  useEffect(() => {
+  useMotionProximo(secao, () => {
     const el = secao.current
     if (!el) return
 
@@ -85,7 +86,7 @@ export function Diretoria() {
     })
 
     return () => mm.revert()
-  }, [])
+  })
 
   return (
     <section ref={secao} id="diretoria" className="secao diretoria" data-secao="diretoria">

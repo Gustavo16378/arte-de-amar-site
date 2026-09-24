@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useMotionProximo } from '../../hooks/useMotionProximo'
 import { BarraDoFio } from '../BarraDoFio'
 import { Blob } from '../Blob'
 import { Fio } from '../Fio'
@@ -104,7 +105,7 @@ export function Projetos() {
   }, [lista])
 
   // cabeçalho
-  useEffect(() => {
+  useMotionProximo(secao, () => {
     const el = secao.current
     if (!el) return
 
@@ -129,7 +130,7 @@ export function Projetos() {
     })
 
     return () => mm.revert()
-  }, [])
+  })
 
   return (
     <section
@@ -182,7 +183,12 @@ export function Projetos() {
                 data-lado={lado}
                 data-status={p.status}
               >
-                <Blob className="projetos__foto" variante={(i + 2) % 5} foto={p.foto} />
+                <Blob
+                  className="projetos__foto"
+                  variante={(i + 2) % 5}
+                  foto={p.foto}
+                  tamanhos="(min-width: 1024px) 600px, 330px"
+                />
 
                 <div className="projetos__corpo">
                   <span className="projetos__status">{p.status}</span>

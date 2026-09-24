@@ -29,12 +29,20 @@
 }
 
 .barra__marca {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: 10px;
   text-decoration: none;
   color: var(--tinta);
   transition: color .3s var(--ease-out);
+}
+
+/* a marca tem 22px de altura de desenho e 44px de área de toque */
+.barra__marca::before {
+  content: '';
+  position: absolute;
+  inset: -11px -4px;
 }
 
 .barra__marca span {
@@ -56,6 +64,7 @@
 }
 
 .barra__doar {
+  position: relative;
   display: inline-flex;
   align-items: center;
   height: 36px;
@@ -69,6 +78,13 @@
   line-height: 1;
   text-decoration: none;
   transition: background .3s var(--ease-out), color .3s var(--ease-out);
+}
+
+/* o pill tem 36px de desenho, como no design, e 44px de toque */
+.barra__doar::before {
+  content: '';
+  position: absolute;
+  inset: -4px 0;
 }
 
 .barra__menu {

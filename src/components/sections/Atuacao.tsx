@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { useMotionProximo } from '../../hooks/useMotionProximo'
 import { Fio } from '../Fio'
 import { comEnfase } from '../Titulo'
 import { gsap } from '../../lib/gsap'
@@ -18,7 +19,7 @@ import { ATUACAO } from '../../content/site'
 export function Atuacao() {
   const secao = useRef<HTMLElement>(null)
 
-  useEffect(() => {
+  useMotionProximo(secao, () => {
     const el = secao.current
     if (!el) return
 
@@ -66,7 +67,7 @@ export function Atuacao() {
     })
 
     return () => mm.revert()
-  }, [])
+  })
 
   return (
     <section

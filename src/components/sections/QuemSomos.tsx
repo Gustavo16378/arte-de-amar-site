@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { useMotionProximo } from '../../hooks/useMotionProximo'
 import { Blob } from '../Blob'
 import { Fio } from '../Fio'
 import { comEnfase } from '../Titulo'
@@ -17,7 +18,7 @@ import { QUEM_SOMOS } from '../../content/site'
 export function QuemSomos() {
   const secao = useRef<HTMLElement>(null)
 
-  useEffect(() => {
+  useMotionProximo(secao, () => {
     const el = secao.current
     if (!el) return
 
@@ -57,7 +58,7 @@ export function QuemSomos() {
     })
 
     return () => mm.revert()
-  }, [])
+  })
 
   return (
     <section
@@ -77,7 +78,12 @@ export function QuemSomos() {
           <p className="corpo quem__texto so-mobile">{QUEM_SOMOS.paragrafoMobile}</p>
 
           <div className="quem__moldura">
-            <Blob className="quem__foto" variante={0} foto={QUEM_SOMOS.foto}>
+            <Blob
+              className="quem__foto"
+              variante={0}
+              foto={QUEM_SOMOS.foto}
+              tamanhos="(min-width: 1024px) 280px, 350px"
+            >
               <span className="quem__legenda so-mobile">
                 {QUEM_SOMOS.legenda[0]}
                 <br />

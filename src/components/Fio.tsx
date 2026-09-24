@@ -1,4 +1,5 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
+import { useMotionProximo } from '../hooks/useMotionProximo'
 import { gsap, ScrollTrigger } from '../lib/gsap'
 import { aplicarTraco, medirFio, TRACO_DESENHAVEL } from '../lib/desenho'
 import { FIO_DESKTOP, FIO_MOBILE, type SecaoFio } from '../lib/fio-paths'
@@ -37,11 +38,13 @@ type Props = {
 export function Fio({ secao, cor = 'gradiente', de = 0, inicio, fim, externo }: Props) {
   const svg = useRef<SVGSVGElement>(null)
 
-  // escala 1:1 com a seção, refeita a cada mudança de tamanho
-  useEffect(() => {
-    const el = svg.current
-    if (!el) return
-
+  /*
+   * Escala 1:1 com a seção, refeita a cada mudança de tamanho. Também espera
+   * a seção se aproximar: medir oito seções na carga custava oito cálculos
+   * de layout forçados de uma vez.
+   */
+  useMotionProximo(svg, (raiz) => {
+    const el = raiz as SVGSVGElement
     const alvo = el.closest('section') ?? el.parentElement
     if (!alvo) return
 
@@ -56,63 +59,68 @@ export function Fio({ secao, cor = 'gradiente', de = 0, inicio, fim, externo }: 
       ro.disconnect()
       ScrollTrigger.removeEventListener('refreshInit', medir)
     }
-  }, [])
+  })
 
-  useEffect(() => {
-    const el = svg.current
-    if (!el || externo) return
+  // o desenho só é armado quando a seção se aproxima; veja useMotionProximo
+  useMotionProximo(
+    svg,
+    (raiz) => {
+      const el = raiz as SVGSVGElement
+      if (externo) return
 
-    const gatilho = el.closest('section') ?? el.parentElement
-    if (!gatilho) return
+      const gatilho = el.closest('section') ?? el.parentElement
+      if (!gatilho) return
 
-    const mm = gsap.matchMedia()
+      const mm = gsap.matchMedia()
 
-    mm.add(
-      {
-        mobile: '(max-width: 1023px) and (prefers-reduced-motion: no-preference)',
-        desktop: '(min-width: 1024px) and (prefers-reduced-motion: no-preference)',
-        reduzido: '(prefers-reduced-motion: reduce)',
-      },
-      (contexto) => {
-        const { mobile, reduzido } = contexto.conditions as Record<string, boolean>
+      mm.add(
+        {
+          mobile: '(max-width: 1023px) and (prefers-reduced-motion: no-preference)',
+          desktop: '(min-width: 1024px) and (prefers-reduced-motion: no-preference)',
+          reduzido: '(prefers-reduced-motion: reduce)',
+        },
+        (contexto) => {
+          const { mobile, reduzido } = contexto.conditions as Record<string, boolean>
 
-        // sem movimento, o fio já nasce desenhado
-        if (reduzido) {
-          for (const t of el.querySelectorAll<SVGPathElement>('.fio__traco')) {
-            aplicarTraco(t, 1)
+          // sem movimento, o fio já nasce desenhado
+          if (reduzido) {
+            for (const t of el.querySelectorAll<SVGPathElement>('.fio__traco')) {
+              aplicarTraco(t, 1)
+            }
+            return
           }
-          return
-        }
 
-        const traco = el.querySelector<SVGPathElement>(
-          mobile ? '.fio__traco--mobile' : '.fio__traco--desktop',
-        )
-        if (!traco) return
+          const traco = el.querySelector<SVGPathElement>(
+            mobile ? '.fio__traco--mobile' : '.fio__traco--desktop',
+          )
+          if (!traco) return
 
-        /*
-         * O GSAP anima um número solto e nós escrevemos o traço a partir
-         * dele. Ligar o scrub direto no strokeDashoffset não interpola: o
-         * valor saltava de 0 a 1 no meio do percurso, que é o que fazia a
-         * linha aparecer de uma vez em vez de ser desenhada.
-         */
-        const estado = { fracao: de }
-        gsap.to(estado, {
-          fracao: 1,
-          ease: 'none',
-          onUpdate: () => aplicarTraco(traco, estado.fracao),
-          scrollTrigger: {
-            trigger: gatilho,
-            start: inicio ?? 'top 80%',
-            end: fim ?? 'bottom 20%',
-            scrub: 0.6,
-            invalidateOnRefresh: true,
-          },
-        })
-      },
-    )
+          /*
+           * O GSAP anima um número solto e nós escrevemos o traço a partir
+           * dele. Ligar o scrub direto no strokeDashoffset não interpola: o
+           * valor saltava de 0 a 1 no meio do percurso, que é o que fazia a
+           * linha aparecer de uma vez em vez de ser desenhada.
+           */
+          const estado = { fracao: de }
+          gsap.to(estado, {
+            fracao: 1,
+            ease: 'none',
+            onUpdate: () => aplicarTraco(traco, estado.fracao),
+            scrollTrigger: {
+              trigger: gatilho,
+              start: inicio ?? 'top 80%',
+              end: fim ?? 'bottom 20%',
+              scrub: 0.6,
+              invalidateOnRefresh: true,
+            },
+          })
+        },
+      )
 
-    return () => mm.revert()
-  }, [de, inicio, fim, externo])
+      return () => mm.revert()
+    },
+    [de, inicio, fim, externo],
+  )
 
   const idDegrade = `fio-grad-${secao}`
   const cordaCor = cor === 'menta' ? 'var(--menta)' : `url(#${idDegrade})`
@@ -173,8 +181,8 @@ export function Fio({ secao, cor = 'gradiente', de = 0, inicio, fim, externo }: 
 }
 
 /**
- * Definições SVG usadas por toda a página: o gradiente do fio e a granulação
- * fina que cobre tudo (feTurbulence, multiply, 13%), como no guia de estilo.
+ * Definições usadas por toda a página: os degradês compartilhados e a
+ * granulação fina que cobre tudo, a 13% em multiply, como no guia de estilo.
  */
 export function DefinicoesSvg() {
   return (
@@ -203,13 +211,8 @@ export function DefinicoesSvg() {
           </linearGradient>
         </defs>
       </svg>
-      <svg className="granulado" aria-hidden="true" focusable="false">
-        <filter id="granulacao">
-          <feTurbulence type="fractalNoise" baseFrequency=".85" numOctaves="2" stitchTiles="stitch" />
-          <feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .55 0" />
-        </filter>
-        <rect width="100%" height="100%" filter="url(#granulacao)" />
-      </svg>
+      {/* a granulação é um ladrilho em CSS; o porquê está em .granulado */}
+      <div className="granulado" aria-hidden="true" />
     </>
   )
 }

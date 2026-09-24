@@ -1,6 +1,8 @@
-import { Fragment, useEffect, useRef } from 'react'
+import { Fragment, useRef } from 'react'
+import { useMotionProximo } from '../../hooks/useMotionProximo'
 import { Blob } from '../Blob'
 import { Fio } from '../Fio'
+import { Foto } from '../Foto'
 import { comEnfase } from '../Titulo'
 import { gsap } from '../../lib/gsap'
 import { aplicarTraco, TRACO_DESENHAVEL } from '../../lib/desenho'
@@ -39,7 +41,7 @@ export function Historia() {
 function HistoriaMobile() {
   const secao = useRef<HTMLElement>(null)
 
-  useEffect(() => {
+  useMotionProximo(secao, () => {
     const el = secao.current
     if (!el) return
 
@@ -65,7 +67,7 @@ function HistoriaMobile() {
     })
 
     return () => mm.revert()
-  }, [])
+  })
 
   return (
     <section
@@ -100,7 +102,7 @@ function MarcoMobile({ marco }: { marco: Marco }) {
 
   const marcoRef = useRef<HTMLElement>(null)
 
-  useEffect(() => {
+  useMotionProximo(marcoRef, () => {
     const el = marcoRef.current
     const elPonto = ponto.current
     if (!el || !elPonto) return
@@ -171,19 +173,9 @@ function MarcoMobile({ marco }: { marco: Marco }) {
     })
 
     return () => mm.revert()
-  }, [])
+  })
 
-  const foto = (
-    <img
-      src={marco.foto.src}
-      alt={marco.foto.alt}
-      width={marco.foto.largura}
-      height={marco.foto.altura}
-      loading="lazy"
-      decoding="async"
-      style={{ objectPosition: marco.foto.posicao }}
-    />
-  )
+  const foto = <Foto foto={marco.foto} tamanhos="(min-width: 1024px) 240px, 390px" />
 
   return (
     <article
@@ -221,7 +213,7 @@ function HistoriaDesktop() {
   const svg = useRef<SVGSVGElement>(null)
   const traco = useRef<SVGPathElement>(null)
 
-  useEffect(() => {
+  useMotionProximo(secao, () => {
     const mm = gsap.matchMedia()
 
     mm.add('(min-width: 1024px) and (prefers-reduced-motion: no-preference)', () => {
@@ -319,7 +311,7 @@ function HistoriaDesktop() {
     })
 
     return () => mm.revert()
-  }, [])
+  })
 
   return (
     <section ref={secao} className="historia-desktop" aria-label="Nossa história">
@@ -368,7 +360,12 @@ function HistoriaDesktop() {
               <span className="historia-desktop__ponto" aria-hidden="true" />
               <div className="historia-desktop__cartao">
                 <span className="historia-desktop__ano">{m.ano}</span>
-                <Blob className="historia-desktop__foto" variante={i % 5} foto={m.foto} />
+                <Blob
+                  className="historia-desktop__foto"
+                  variante={i % 5}
+                  foto={m.foto}
+                  tamanhos="240px"
+                />
                 <h3 className="historia-desktop__marco-titulo">{m.titulo}</h3>
                 <p className="historia-desktop__marco-desc">{m.textoDesktop}</p>
               </div>

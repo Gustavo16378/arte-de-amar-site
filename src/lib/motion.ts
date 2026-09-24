@@ -87,6 +87,12 @@ export function revelarLinhas(
     mask: 'lines',
     autoSplit: true,
     linesClass: 'linha-motion',
+    /*
+     * Sem aria-label: o SplitText o acrescenta por padrão, e ele é proibido
+     * num <p>. Cortando por linha o texto continua inteiro e na ordem, então
+     * o leitor de tela lê normalmente sem ele.
+     */
+    aria: 'none',
     onSplit: (self) =>
       gsap.from(self.lines, {
         yPercent: 112,
@@ -95,7 +101,8 @@ export function revelarLinhas(
         delay: atraso,
         stagger: intervalo,
         onComplete: aoTerminar,
-        scrollTrigger: gatilho === null ? undefined : { trigger: gatilho ?? el, start: inicio },
+        scrollTrigger:
+          gatilho === null ? undefined : { trigger: gatilho ?? el, start: inicio },
       }),
   })
 }

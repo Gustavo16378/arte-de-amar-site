@@ -1,13 +1,7 @@
 import type { CSSProperties, ReactNode } from 'react'
+import { Foto } from './Foto'
+import type { Foto as DadosFoto } from '../content/fotos'
 import { BLOBS } from '../lib/blobs'
-
-type Foto = {
-  src: string
-  alt: string
-  largura: number
-  altura: number
-  posicao?: string
-}
 
 type Props = {
   /** índice da máscara orgânica, 0 a 4 */
@@ -18,7 +12,9 @@ type Props = {
    * muda entre mobile e desktop e um valor inline ganharia da media query.
    */
   mascara?: string | null
-  foto?: Foto
+  foto?: DadosFoto
+  /** quanto a foto ocupa na tela, para o srcset escolher a largura certa */
+  tamanhos?: string
   /** rotação leve da moldura, em graus */
   rotacao?: number
   /** o hero não é lazy */
@@ -37,6 +33,7 @@ export function Blob({
   variante = 0,
   mascara,
   foto,
+  tamanhos,
   rotacao,
   prioridade = false,
   className,
@@ -55,19 +52,7 @@ export function Blob({
         ...style,
       }}
     >
-      {foto && (
-        <img
-          src={foto.src}
-          alt={foto.alt}
-          width={foto.largura}
-          height={foto.altura}
-          loading={prioridade ? 'eager' : 'lazy'}
-          decoding={prioridade ? 'sync' : 'async'}
-          // o React 18 ainda não conhece fetchPriority em camelCase
-          {...(prioridade ? { fetchpriority: 'high' } : {})}
-          style={{ objectPosition: foto.posicao }}
-        />
-      )}
+      {foto && <Foto foto={foto} tamanhos={tamanhos} prioridade={prioridade} />}
       {children}
     </div>
   )

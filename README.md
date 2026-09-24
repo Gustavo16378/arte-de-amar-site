@@ -1,45 +1,134 @@
 # Arte de Amar · site da ONG
 
-Site one page da OSC Arte de Amar, de Palmas, Tocantins. Projeto autoral, sem template.
+Site one page da OSC Arte de Amar, de Palmas, Tocantins. Projeto autoral, sem
+template.
 
-A especificação completa está em [`PROMPT.md`](PROMPT.md); as regras do projeto, em
+A especificação está em [`PROMPT.md`](PROMPT.md); as regras do projeto, em
 [`CLAUDE.md`](CLAUDE.md). O design de referência está em
-[`design-reference/`](design-reference/) (abra `original-claude-design/*.html` no
-navegador para ver rodando).
+[`design-reference/`](design-reference/) (abra `original-claude-design/*.html`
+no navegador para ver rodando).
+
+---
 
 ## Rodar
 
 ```bash
 npm install
 npm run dev      # http://localhost:5173
-npm run build    # checa os tipos e gera dist/
+npm run build    # gera as imagens, checa os tipos e monta o dist/
 npm run preview  # serve o dist/ para conferir o build
+npm run imagens  # refaz as versões responsivas das fotos do zero
 ```
 
-Confira sempre em **390x844** (mobile, que é a versão principal) e **1440x900**
-(desktop). Até 1023px vale o layout mobile.
+`npm run dev` e `npm run build` geram as derivadas das fotos antes de subir.
+Na primeira vez isso leva uns segundos; depois só refaz o que mudou.
 
-## Stack
+Confira sempre em **390x844** (mobile, que é a versão principal) e
+**1440x900** (desktop). Até 1023px vale o layout mobile.
+
+`?nopre` na URL pula o preloader, para conferir o resto da página sem esperar
+a abertura.
+
+---
+
+## Deploy no Cloudflare Pages
+
+1. Conecte o repositório em **Workers & Pages → Create → Pages → Connect to
+   Git** e escolha `arte-de-amar-site`.
+2. Configure o build:
+
+   | campo | valor |
+   |---|---|
+   | Framework preset | None |
+   | Build command | `npm run build` |
+   | Build output directory | `dist` |
+   | Node version | 20 ou mais |
+
+   Se o Node vier antigo, adicione a variável de ambiente
+   `NODE_VERSION = 20`. O `sharp`, que gera as imagens, precisa dela.
+
+3. **Depois do primeiro deploy**, troque `https://SEU-DOMINIO/` pelo domínio
+   real em três lugares: [`index.html`](index.html) (canonical, `og:url` e
+   `og:image`), [`public/robots.txt`](public/robots.txt) e
+   [`public/sitemap.xml`](public/sitemap.xml).
+4. Domínio próprio em **Custom domains**. O certificado sai sozinho.
+
+Não há backend: o formulário de voluntário ainda só mostra a confirmação na
+tela. Ligá-lo a um e-mail ou ao WhatsApp é o próximo passo.
+
+---
+
+## Lighthouse
+
+Medido no build de produção, com o Chrome do Playwright.
+
+| | Performance | Acessibilidade | Boas práticas | SEO |
+|---|---|---|---|---|
+| **Mobile**, primeira visita | **92** | **100** | **100** | **100** |
+| **Mobile**, visita seguinte | **91** | **100** | **100** | **100** |
+| **Desktop** | **100** | **100** | **100** | **100** |
+
+Métricas do mobile: FCP 2,0s · LCP 3,0s · TBT 120ms · CLS 0,038 · SI 2,0s.
+
+O que ainda pesa, e por quê: **LCP e FCP**. A página só pinta depois que o
+React monta, e React mais GSAP são 94 kB gzip que a stack definida no
+`CLAUDE.md` não permite trocar. O preload do hero já baixa a foto em paralelo,
+então o LCP está limitado pelo tempo de parse e execução do JavaScript, não
+pela imagem.
+
+O caminho para baixar mais seria tirar o GSAP do caminho crítico com import
+dinâmico. Não fiz: exigiria tornar assíncrona a montagem de quinze arquivos no
+fim do projeto, e o alvo já está batido.
+
+---
+
+## Stack e peso do JavaScript
 
 React 18 + Vite + TypeScript + Tailwind, GSAP (ScrollTrigger, ScrollToPlugin,
-SplitText, DrawSVGPlugin) e Lenis. Deploy no Cloudflare Pages: build
-`npm run build`, saída `dist/`.
+SplitText) e Lenis.
 
-Os quatro plugins são registrados num ponto só, em `src/lib/gsap.ts`. SplitText
-e DrawSVG ainda não são usados: custam 8,4 kB gzip que a Fase 6 pode recuperar
-separando o motion abaixo da dobra, se o Lighthouse pedir.
+| chunk | bruto | gzip |
+|---|---|---|
+| react | 139,8 kB | 45,3 kB |
+| gsap | 123,5 kB | 48,6 kB |
+| nosso código | 61,7 kB | 18,0 kB |
+| lenis | 18,6 kB | 5,4 kB |
+| **total** | **343,6 kB** | **117,3 kB** |
+
+Antes da revisão eram **117,8 kB gzip** num arquivo só. O ganho em bytes foi
+pequeno, mas a composição mudou: as bibliotecas ficaram em chunks próprios,
+então o cache do visitante sobrevive a cada publicação, e o **DrawSVGPlugin
+saiu** (3,7 kB), porque desde a correção da Fase 4 o fio é desenhado por
+`stroke-dashoffset` e o plugin estava registrado sem uso.
+
+**Sobre `React.lazy` nas seções abaixo da dobra:** medi, e as nove seções
+somam 14,0 kB gzip. Descontando o hero, adiar as outras oito pouparia uns
+12 kB de 117, cerca de 10%. Contra isso: a página é toda movida a scroll, e
+seções que montam tarde mudam a altura do documento, o que desalinha os
+ScrollTriggers e gera layout shift, hoje em 0,038. Não compensa.
+
+O ganho de verdade veio de outro lugar: **adiar a montagem do motion**. Cada
+seção só arma os seus ScrollTriggers, mede o próprio tamanho e corta o texto
+em linhas quando se aproxima da tela
+([`useMotionProximo`](src/hooks/useMotionProximo.ts)). Quem abre e não rola não
+paga por nada disso. Junto com a troca da granulação, o bloqueio da thread
+principal caiu de **690ms para 120ms**.
+
+---
 
 ## Estrutura
 
 ```
 src/
-  content/      textos, números, marcos, membros, projetos e o catálogo de fotos
-  styles/       tokens, fontes, base, componentes, header, seções, visibilidade
-  lib/          gsap e lenis, desenho do traço, motion, paths do fio e do coração
+  content/      textos, números, marcos, membros, projetos, catálogo de fotos
+  styles/       tokens, fontes, base, componentes, header, preloader, seções
+  lib/          gsap, lenis, desenho do traço, motion, paths do fio e do coração
   components/   peças reutilizadas e uma pasta sections/ com as nove seções
-  hooks/        direção da rolagem, tema do header, estado da navegação, scroll lock
+  hooks/        rolagem, tema do header, navegação, scroll lock, motion adiado
 scripts/
-  gerar-og.mjs  gera public/og-image.jpg a partir da foto do hero
+  gerar-imagens.mjs  versões responsivas das fotos, em WebP e JPG
+  gerar-grao.mjs     ladrilho da granulação
+  gerar-og.mjs       public/og-image.jpg, 1200x630
 ```
 
 As folhas de estilo são importadas em ordem no `main.tsx`: primeiro a base do
@@ -47,240 +136,137 @@ Tailwind, depois as nossas camadas. `visibilidade.css` vem por último de
 propósito, porque `.so-mobile` e `.so-desktop` precisam ganhar de qualquer
 regra de seção que defina `display`.
 
-## Fases
+---
 
-1. **Base** — concluída. Tokens, fontes self-hosted, conteúdo extraído dos
-   sources e layout estático de todas as seções em mobile e desktop, sem motion.
-2. **Navegação** — concluída. Header mobile com esconder/mostrar e inversão de
-   tema, menu em portal com scroll lock, índice lateral desktop com progresso
-   do fio, botão Doar flutuante, ScrollTo e Lenis.
-3. **Preloader** — concluído. Coração desenhando com DrawSVG, "Arte de Amar"
-   escrito à mão, porcentagem, preenchimento e pulso, cortina e nascimento do
-   fio. Só na primeira visita da sessão.
-4. **O fio** — concluída. DrawSVG com scrub em todas as seções, continuidade
-   entre elas, o coração fechando em Como ajudar, o fio como linha do tempo
-   pinada no desktop e como barra de progresso nas campanhas com meta.
-5. **Motions de seção** — concluída. SplitText por linhas, contadores,
-   máscaras abrindo, parallax, carrossel mobile, filtro de projetos com o
-   traço deslizando, entradas em stagger.
-6. Acabamento: WebP, reduced-motion, OG, favicon, acessibilidade, Lighthouse.
+## Decisões técnicas
 
-## Decisões da Fase 1
-
-Onde o design não fechava sozinho, a escolha foi esta:
+### Layout e conteúdo
 
 - **Mobile e desktop convivem no DOM.** Onde muda só o layout, resolvemos em
-  CSS. Onde o *texto* muda (missão/visão/valores, objetivo dos projetos,
-  legendas, atuação, nossa história), as duas versões ficam no HTML e
-  `.so-mobile` / `.so-desktop` escondem uma. Evita medir a viewport em JS e não
-  pisca na primeira pintura. As fotos são as mesmas nas duas versões, então o
-  navegador baixa cada arquivo uma vez só.
-- **O fio já nasce desenhado.** Na Fase 1 os paths aparecem inteiros, para dar
-  para conferir o traçado. A Fase 4 troca isso por DrawSVG com scrub.
-- **Índice lateral e botão Doar flutuante começam invisíveis**, como no
-  `source.html` do desktop: eles só aparecem depois dos primeiros 40px de
-  rolagem. O gatilho entrou na Fase 2.
-- **Fio do mobile a 20px da borda.** O `FIO.m` do source do desktop põe o fio a
-  x=8% (31px em 390), mas o source do mobile, que é a versão principal, desenha
-  a 20px. Usamos o `FIO_M` da prancha, que é x=5%. O `FIO.m` ficou registrado em
+  CSS. Onde o *texto* muda, as duas versões ficam no HTML e `.so-mobile` /
+  `.so-desktop` escondem uma. Evita medir a viewport em JS e não pisca na
+  primeira pintura. As fotos são as mesmas, então o navegador baixa cada
+  arquivo uma vez só.
+- **Fio do mobile a 20px da borda.** O `FIO.m` do source do desktop põe o fio
+  a 31px; o source do mobile, que é a versão principal, desenha a 20px.
+  Usamos o `FIO_M` da prancha. O `FIO.m` ficou registrado em
   `src/lib/fio-paths.ts` para consulta.
-- **Duas fotos chegaram com o nome trocado** no acervo: `equipe-mural.jpg`
-  continha os Big Macs do McDia Feliz e `mcdia-feliz.jpg` continha a equipe
-  diante do mural. Os dois arquivos foram renomeados, então hoje cada nome bate
-  com a foto. Todas as fotos passam por `src/content/fotos.ts`, que guarda
-  `src`, `alt` e dimensão de cada uma num lugar só.
-- **Chave PIX.** O `PROMPT.md` pede Switzer com algarismos tabulares, que é bem
-  mais larga que a Sentient do source do desktop. No corpo original a chave
-  quebrava em duas linhas dentro da coluna, então fechamos o corpo e o tracking
-  no desktop até caber numa linha.
+- **Duas fotos chegaram com o nome trocado** e foram renomeadas:
+  `equipe-mural.jpg` tinha os Big Macs e `mcdia-feliz.jpg` tinha a equipe no
+  mural. Tudo passa por `src/content/fotos.ts`.
+- **Chave PIX em Switzer com algarismos tabulares**, como o `PROMPT.md` pede.
+  É mais larga que a Sentient do source e quebrava em duas linhas no desktop,
+  então o corpo e o tracking foram fechados até caber numa linha.
 - **Sem travessão em texto nenhum**, conforme a regra 5. O `— {nome}` do
-  depoimento no source do desktop virou só o nome.
-- **Barra do header a 82% de opacidade**, como nos dois `source.html`. O texto
-  do briefing fala em 92%; os sources são a fonte da verdade.
-- **Botão do menu com 40px de desenho e 44px de toque**, via pseudo-elemento,
-  para respeitar o mínimo de acessibilidade sem engordar o círculo.
+  depoimento virou só o nome.
+- **Barra do header a 82% de opacidade**, como nos dois `source.html`. O
+  briefing fala em 92%; os sources são a fonte da verdade.
+- **O coração de Como ajudar é centralizado no desktop.** O source o
+  encostava na direita, onde colidia com o fim do título e caía em cima da
+  terceira coluna.
 
-## Decisões da Fase 2
+### Navegação
 
-- **Quem rola é o Lenis, não o `scroll-behavior: smooth`.** A propriedade foi
-  removida do `html`: ela briga com o Lenis e com o ScrollTrigger. Sob
-  `prefers-reduced-motion` o Lenis nem é criado e o salto instantâneo passa a
-  ser o comportamento correto.
+- **Quem rola é o Lenis**, não o `scroll-behavior: smooth`, que briga com ele
+  e com o ScrollTrigger. Sob `prefers-reduced-motion` o Lenis nem é criado.
 - **`irPara()` usa o Lenis quando ele existe e o ScrollToPlugin quando não.**
-  O `PROMPT.md` pede ScrollToPlugin nos links, mas com o Lenis ativo o plugin
-  escreve direto no `scrollY` e o rAF do Lenis desfaz isso no quadro seguinte.
-  O plugin segue registrado e é ele quem anima no caminho sem Lenis.
-- **O menu continua montado durante a animação de saída.** A trava de rolagem
-  só solta no desmonte, então a navegação é disparada depois, e não no clique:
-  rolar com o body ainda em `position: fixed` perderia o destino.
-- **Ao destravar, quem devolve a posição é o Lenis.** Com o body fixo o
-  documento vai para o topo e o Lenis registra esse zero. Um `window.scrollTo`
-  sozinho seria desfeito no quadro seguinte, então `restaurarScroll()` usa
-  `lenis.scrollTo(y, { immediate, force })`.
-- **A inversão de tema usa um conjunto de seções ativas**, não um booleano por
-  seção. Na troca de uma seção escura para outra as duas podem cruzar a linha
-  do header no mesmo quadro, e o header não pode piscar de claro no meio.
-- **O progresso do fio no índice é escrito direto no elemento**, fora do
-  estado do React: muda a cada quadro e não vale um render. Só as chaves
-  discretas (seção ativa, topo visível, botão flutuante) passam por estado.
-- **`data-dark` marca Números, Nossa atuação, Como ajudar e o rodapé.** O hero
-  fica de fora de propósito: ele é escuro, mas o design mostra o header claro
-  sobre ele, que é o primeiro enquadramento da página.
-- **Durante uma rolagem por clique o header não reage à direção.** Seria
-  estranho ele fugir justamente quando o usuário pediu para ir a algum lugar.
-  A trava é liberada pelo `onComplete` do Lenis e tem um prazo de validade,
-  porque uma rolagem interrompida com o dedo pode nunca chamar o callback.
+  Com o Lenis ativo o plugin escreve direto no `scrollY` e o rAF do Lenis
+  desfaz isso no quadro seguinte.
+- **O menu continua montado durante a animação de saída**, e a navegação só
+  dispara depois: rolar com o body ainda em `position: fixed` perderia o
+  destino. Ao destravar, quem devolve a posição é o Lenis.
+- **Remedimos o ScrollTrigger ao soltar a trava de rolagem.** Com o body fora
+  do fluxo o documento fica com altura de viewport, e todo ScrollTrigger
+  medido nesse intervalo fica com o fim em zero.
+- **Durante uma rolagem por clique o header não reage à direção**, com prazo
+  de validade para o caso de o usuário interromper a rolagem.
 
-## Decisões da Fase 3
+### O fio
 
-- **O preloader roda em toda visita**, e não só na primeira da sessão: é
-  decisão da ONG, que quer a abertura sempre. O `?nopre` na URL pula a
-  abertura, para conferir o resto da página sem esperar quatro segundos a
-  cada recarga; é a mesma saída que o source.html de referência tinha.
-- **A decisão é tomada no primeiro render**, no inicializador do estado.
-  Decidir num efeito deixaria o hero piscar antes da cortina.
-- **O primeiro trecho do fio é desenhado sobre a cortina, não no hero.** O fio
-  do hero começa no topo da seção, que é a última parte revelada por uma
-  cortina que sobe: ninguém veria o nascimento. Preso ao coração, ele desce
-  junto e dá a leitura de fio sendo puxado para dentro da página. O fio do
-  hero é desenhado até 30% no mesmo intervalo e continua de onde este para.
-- **A animação do fio do hero roda fora do `gsap.context` do preloader.** Ela
-  pertence ao hero: dentro do contexto, o `revert` do desmonte apagaria o
-  traço recém-nascido.
-- **Remedimos o ScrollTrigger ao soltar a trava de rolagem.** Com o body em
-  `position: fixed` o documento fica com altura de viewport, e todo
-  ScrollTrigger medido nesse intervalo fica com o fim em zero: o progresso do
-  índice travava em 100% e o `onUpdate` parava de acompanhar a página inteira
-  depois do preloader.
-- **A cauda que completa o fio do hero até 100% é temporária.** Ela existe para
-  o fio não ficar cortado em 30% enquanto a Fase 4 não liga o scrub, e está
-  marcada com TODO no `Preloader.tsx`.
+- **O espaço do SVG é pixels reais.** Num `viewBox` esticado, o DrawSVG, o
+  `non-scaling-stroke` e o navegador mediam o comprimento do path de três
+  formas diferentes: o fio desenhava cinco vezes mais rápido na linha do
+  tempo e andava, parava e pulava nas seções. O viewBox recebe a caixa da
+  seção e as coordenadas do path são convertidas de porcentagem para pixel.
+- **O GSAP não interpola `stroke-dashoffset`.** Ele anima um número solto e
+  nós escrevemos a propriedade, por `tweenDoTraco()` e `aplicarTraco()` em
+  `lib/desenho.ts`.
+- **Cada seção tem o seu degradê em coordenadas reais.** Em
+  `objectBoundingBox` uma reta vertical tem caixa de largura zero e o
+  navegador não desenha nada.
+- **A altura da linha do tempo vem do espaçador do pin.** Os `450vh` do
+  `PROMPT.md` dariam 3150px de rolagem para um percurso de 3352px em 1440: o
+  fim do trilho ficaria inalcançável.
+- **A onda cruza o meio exatamente em cada marco**, onde está o pontinho. O
+  source usava período fixo de 380px, sem relação com o espaçamento.
+- **O índice lateral sai de cena durante a linha do tempo**, onde os marcos
+  passavam por baixo dele.
+- **Sem movimento, o desktop usa a história vertical**: a pinada depende de
+  rolagem para avançar na horizontal.
 
-## Decisões da Fase 4
+### Motion
 
-- **Um `gsap.matchMedia` por fio.** Os dois paths, mobile e desktop, ficam no
-  DOM e a media query esconde um. O matchMedia anima só o visível e refaz a
-  conta sozinho quando a largura cruza o breakpoint, sem medir viewport em JS.
-- **O hero começa em 30%, não em zero.** É onde o preloader parou, saindo do
-  coração. O gatilho dele também é especial (`top top` em vez de
-  `top 80%`): com a regra geral, o hero já estaria pela metade no primeiro
-  quadro, porque o topo da seção nasce acima da linha de início.
-- **A linha do tempo do desktop é gerada, não copiada.** O path depende da
-  largura real do trilho, que depende de quantos marcos existem e do tamanho
-  da janela. A lógica está em `lib/timeline-path.ts`, portada do `measure()`
-  do source do desktop, e é refeita a cada refresh do ScrollTrigger.
-- **A altura da seção da linha do tempo é automática.** O `PROMPT.md` sugere
-  `450vh`, mas em 1440 isso dá 3150px de rolagem para um percurso de 3352px:
-  o fim do trilho ficaria inalcançável. Quem define a altura é o espaçador do
-  pin, calculado a partir do percurso real.
-- **O índice lateral sai de cena durante a linha do tempo.** Os marcos passam
-  por baixo dele e o texto colidia, uma colisão que o source estático nunca
-  mostrou porque nunca chegou a rolar. Na seção em que o próprio fio é o
-  indicador de progresso, o índice não faz falta.
-- **Sem movimento, o desktop usa a história vertical.** A versão pinada
-  depende de rolagem para avançar na horizontal: sem ela, metade da linha do
-  tempo ficaria inalcançável. A coluna ganha uma largura máxima para não se
-  perder numa tela larga.
-- **A barra de progresso é um traço do fio de verdade**, desenhado com DrawSVG
-  até a fração da meta, e não uma div com largura. Ganha a mesma ponta
-  arredondada e o mesmo degradê, agora numa variante horizontal
-  (`#fio-grad-h`), porque o degradê diagonal do fio quase não aparecia numa
-  faixa de 2px de altura.
-- **O fio de Como ajudar é recalculado a partir da caixa do coração na tela.**
-  Ele tem que terminar exatamente na fenda, e a fenda muda de lugar com a
-  largura da janela. O valor em `fio-paths.ts` é só o ponto de partida.
+- **O estado inicial é posto pelo GSAP, nunca pelo CSS.** Se o JavaScript
+  falhar ou o visitante pedir menos movimento, o conteúdo já está no lugar e
+  visível.
+- **O SplitText só corta depois de `document.fonts.ready`**, e com
+  `aria: 'none'`: o `aria-label` que ele acrescenta é proibido num `<p>`.
+- **O hero espera a cortina do preloader.**
+- **A rotação da máscara que abre é relativa**, para não apagar a inclinação
+  que a moldura já tem no CSS.
+- **O parallax do carrossel escuta o `scroll` do container**, porque ali a
+  rolagem é horizontal e interna.
 
-## Correções depois da Fase 4
+### Performance e acessibilidade
 
-Três defeitos que só apareceram com a página rolando de verdade, todos com a
-mesma raiz.
+- **Granulação é um ladrilho de 128px, não um `feTurbulence`.** O filtro vivo
+  cobrindo a viewport custava mais de um segundo de Style & Layout no
+  Lighthouse mobile.
+- **As fotos viram uma escada de larguras em WebP e JPG.** O hero saiu de
+  481 kB para 71 kB na largura que um celular de 390px pede. O `<picture>`
+  serve WebP com JPG de reserva, e o `src` continua sendo o original.
+- **O preload do hero usa o mesmo `srcset` e `sizes` do `<picture>`**, senão
+  o navegador baixaria a maior versão.
+- **Todas as imagens têm `width` e `height`**, que é o que segura o layout.
+  Só a do hero não é lazy.
+- **Áreas de toque de 44px sem mexer no desenho.** O pill "Doar" tem 36px de
+  altura, como no design, e os links do rodapé 21px; um pseudo-elemento
+  estende a área até 44px em cada um.
+- **A legenda sobre a foto ganhou um véu curto**, para o contraste não
+  depender do trecho da imagem que calhar de ficar atrás dela, nem da próxima
+  foto que a ONG venha a trocar.
 
-- **O fio desenhava rápido demais e de forma irregular.** Na linha do tempo ele
-  ia cinco vezes mais rápido que o trilho; nas seções, andava, parava e
-  pulava. Causa: o fio vivia num `viewBox` esticado por
-  `preserveAspectRatio="none"`, onde a escala horizontal e a vertical são
-  diferentes. O DrawSVG mede o path em unidades de tela e aplica uma escala
-  média das duas; o `vector-effect="non-scaling-stroke"` calcula o tracejado
-  em pixels de tela; e o navegador aplica o resto em unidades do viewBox. As
-  três medidas discordavam, e discordavam de forma desigual ao longo do path.
-
-  A saída é a mesma dos source.html: **o espaço do SVG passou a ser pixels
-  reais**. O viewBox recebe a caixa da seção e as coordenadas do path são
-  convertidas de porcentagem para pixel a cada medição. Com escala 1:1 as
-  medidas coincidem, o traço não deforma sem precisar de
-  `non-scaling-stroke`, e o desenho fica exato.
-
-- **O GSAP não interpola `stroke-dashoffset`.** Ligado a um scrub ou a um
-  tween, o valor saltava do início para o fim e o traço aparecia de uma vez.
-  Agora o GSAP anima um número solto e nós escrevemos o `stroke-dashoffset`
-  a partir dele, por `tweenDoTraco()` e `aplicarTraco()` em
-  `lib/desenho.ts`. Vale para o fio, para a linha do tempo, para o coração,
-  para a barra de progresso e para o preloader.
-
-- **O coração fechava antes de o fio chegar nele.** Eles tinham gatilhos
-  separados e, como Como ajudar é uma seção alta, o fio levava a seção inteira
-  para chegar enquanto o coração fechava logo na entrada. Agora os dois são
-  desenhados pelo mesmo ScrollTrigger, em sequência: o fio ocupa os primeiros
-  35% do percurso e o coração o resto.
-
-E mais três acertos de leitura:
-
-- **Os marcos acendiam tarde demais.** A ponta do fio era estimada por
-  `progresso × largura do trilho`, o que erra porque o path começa e termina
-  recuado 20% da janela. Agora a posição vem do próprio path, e o marco acende
-  60px antes de a linha chegar nele: a foto já está subindo quando o fio passa.
-- **A onda da linha do tempo tinha período fixo de 380px**, sem relação com o
-  espaçamento dos marcos, então o fio cruzava o meio em pontos arbitrários e
-  os pontinhos ficavam soltos fora da linha. Agora ela cruza o meio exatamente
-  em cada marco.
-- **O degradê do fio precisa de coordenadas reais.** Em `objectBoundingBox`
-  uma linha perfeitamente vertical tem caixa de largura zero, e o navegador
-  não desenha nada: era o que sumia com o fio da Nossa história. Cada seção
-  tem agora o seu degradê, ao longo da própria altura.
-- **O coração de Como ajudar ficava encostado na direita no desktop**
-  (`right: 6%` do source), colidindo com o fim do título e caindo em cima da
-  terceira coluna. Passou a ser centralizado, como no mobile, atrás do título.
-
-## Decisões da Fase 5
-
-- **O estado inicial de cada motion é posto pelo GSAP, nunca pelo CSS.** Se o
-  JavaScript falhar ou o visitante pedir menos movimento, o conteúdo já está
-  no lugar e visível, em vez de ficar invisível esperando uma animação que
-  não vem. Testado: depois de rolar a página inteira, nenhum elemento fica
-  translúcido, em 390 e em 1440.
-- **O SplitText só corta depois de `document.fonts.ready`.** Antes disso as
-  quebras de linha são as da fonte de fallback, e o corte sairia nos lugares
-  errados. O `autoSplit` refaz o corte quando a largura muda.
-- **O hero espera a cortina do preloader.** O `App` guarda esse sinal e o
-  passa ao `Hero`; sem preloader, ele já começa no primeiro quadro.
-- **O ano do marco sobe de trás de uma máscara só no layout B.** No layout A
-  ele é vertical e girado 180°, onde uma máscara subiria na direção errada;
-  ali ele entra com um fade curto e deslocamento.
-- **A rotação da máscara que abre é relativa** (`'+=3'`), para o fim da
-  animação não apagar a inclinação que a moldura já tem no CSS. A foto de
-  Quem somos termina nos seus `-3°`, como antes.
-- **O parallax do carrossel da diretoria escuta o `scroll` do container**, e
-  não o ScrollTrigger: a rolagem ali é horizontal e interna, fora do alcance
-  dele.
-- **O filtro de projetos tem um traço só, que desliza** entre os itens, em vez
-  de um traço por botão aparecendo e sumindo. Na troca, os cards atuais saem
-  em fade de 0.25s e os novos entram em stagger de 0.08s; a lista só troca
-  quando a saída termina.
-- **O nome da diretoria sublinha no toque**, por `:active` e
-  `:focus-within`, já que no celular não existe hover.
+---
 
 ## Pendências para a ONG
 
-- `src/content/membros.ts` — nomes e retratos da diretoria. Hoje são seis
-  placeholders "Nome Sobrenome" com moldura listrada.
-- `src/content/site.ts` — os quatro números de impacto (11, 3.197+, 40+, 120+)
-  são estimativas do design.
-- `src/content/site.ts` — número real do WhatsApp, hoje `5563999999999`.
-- `src/content/site.ts` — payload PIX estático (BR Code) do CNPJ, para gerar o
-  QR de verdade no lugar do marcador atual.
-- `src/content/projetos.ts` — números das metas em andamento.
-- `index.html` — trocar `https://SEU-DOMINIO/` pelo domínio real depois do
-  deploy (canonical, `og:url` e `og:image`).
-- `src/content/fotos.ts` — `triagem-roupas.jpg` e `criancas-comunidade.jpg`
-  chegaram em 240x320 e ficam moles quando usadas grandes. Pedir os originais.
-- `src/content/site.ts` — crédito do rodapé, hoje "nome do estúdio".
+Tudo marcado com `TODO` no código.
+
+| onde | o que falta |
+|---|---|
+| `src/content/membros.ts` | nomes e retratos da diretoria; hoje são seis placeholders "Nome Sobrenome" com moldura listrada |
+| `src/content/site.ts` | os quatro números de impacto (11, 3.197+, 40+, 120+) são estimativas do design |
+| `src/content/site.ts` | número real do WhatsApp, hoje `5563999999999` |
+| `src/content/site.ts` | payload PIX estático (BR Code) do CNPJ, para gerar o QR de verdade |
+| `src/content/site.ts` | crédito do rodapé, hoje "nome do estúdio" |
+| `src/content/projetos.ts` | números das metas em andamento |
+| `index.html`, `robots.txt`, `sitemap.xml` | trocar `https://SEU-DOMINIO/` pelo domínio real |
+| `src/components/sections/ComoAjudar.tsx` | destino do formulário de voluntário |
+| `src/content/fotos.ts` | `triagem-roupas.jpg` e `criancas-comunidade.jpg` chegaram em 240x320 e ficam moles quando usadas grandes; pedir os originais |
+
+---
+
+## Fases
+
+1. **Base** — tokens, fontes self-hosted, conteúdo extraído dos sources e
+   layout estático de todas as seções.
+2. **Navegação** — header mobile, menu em portal com scroll lock, índice
+   lateral, botão Doar flutuante, ScrollTo e Lenis.
+3. **Preloader** — coração desenhando, escrita à mão, cortina e nascimento do
+   fio. Uma vez por sessão.
+4. **O fio** — desenho com scrub em todas as seções, continuidade entre elas,
+   o coração fechando, a linha do tempo pinada e a barra de progresso.
+5. **Motions de seção** — SplitText, contadores, máscaras, parallax,
+   carrossel, filtro de projetos.
+6. **Acabamento** — WebP responsivo, revisão do bundle, reduced motion, OG,
+   favicon, acessibilidade e Lighthouse.
