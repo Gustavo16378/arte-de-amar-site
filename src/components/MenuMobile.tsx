@@ -1,4 +1,4 @@
-import { useEffect, useRef, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { createPortal } from 'react-dom'
 import { X } from 'lucide-react'
 import { Coracao } from './Coracao'
@@ -19,18 +19,24 @@ const EASE = 'cubic-bezier(.2, .8, .2, 1)'
 const CREME = '#F6F2EA'
 const MENTA = '#6FE3B0'
 const VERDE = '#0B2E22'
+const SWITZER = 'Switzer, Helvetica, Arial, sans-serif'
 
 /*
  * Estilos inline de propósito: o overlay e o painel vivem num portal no body,
  * fora da árvore do <nav>, e carregar estilo junto deles evita que qualquer
  * regra de seção, com o seu overflow ou o seu transform, interfira.
+ *
+ * O `outline: none` aqui é deliberado e precisa ser inline: existe um
+ * `:focus-visible` global com outline e offset de 3px, e num item de largura
+ * total ele desenhava uma caixa em volta do link. Dentro do painel o foco se
+ * mostra por cor de texto.
  */
 const overlay = (aberto: boolean, mobile: boolean): CSSProperties => ({
   display: mobile ? 'block' : 'none',
   position: 'fixed',
   inset: 0,
   zIndex: 9998,
-  background: 'rgba(11, 46, 34, .6)',
+  background: 'rgba(11, 46, 34, .55)',
   backdropFilter: 'blur(4px)',
   WebkitBackdropFilter: 'blur(4px)',
   opacity: aberto ? 1 : 0,
@@ -46,13 +52,11 @@ const painel = (aberto: boolean, mobile: boolean): CSSProperties => ({
   top: 0,
   right: 0,
   zIndex: 9999,
-  width: '85vw',
-  maxWidth: 340,
+  width: '80vw',
+  maxWidth: 320,
   height: '100dvh',
   background: VERDE,
   color: CREME,
-  /* separa o painel do véu, que é da mesma família de verde */
-  boxShadow: '0 0 60px rgba(0, 0, 0, .35)',
   display: mobile ? 'flex' : 'none',
   flexDirection: 'column',
   transform: aberto ? 'translateX(0)' : 'translateX(100%)',
@@ -74,7 +78,7 @@ const topo: CSSProperties = {
   height: 'calc(64px + env(safe-area-inset-top))',
   paddingTop: 'env(safe-area-inset-top)',
   paddingRight: 16,
-  paddingLeft: 28,
+  paddingLeft: 32,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'space-between',
@@ -84,31 +88,42 @@ const marca: CSSProperties = {
   display: 'inline-flex',
   alignItems: 'center',
   gap: 10,
-  font: '400 18px/1 Sentient, Georgia, serif',
+  font: '400 17px/1 Sentient, Georgia, serif',
   color: CREME,
 }
 
+/*
+ * O X é o primeiro foco ao abrir e fica sempre creme: pintá-lo de menta no
+ * foco faria com que ele nunca aparecesse na cor pedida. Quem mostra foco
+ * por cor são os links, logo abaixo.
+ */
 const fechar: CSSProperties = {
   width: 44,
   height: 44,
+  marginRight: -11,
   display: 'flex',
   alignItems: 'center',
   justifyContent: 'center',
   border: 0,
-  borderRadius: 8,
   background: 'transparent',
   color: CREME,
+  outline: 'none',
   cursor: 'pointer',
 }
 
-/* a lista toma o espaço entre o topo e o rodapé e centraliza os itens nele */
+/*
+ * A lista encosta no topo, sem centralizar. O recuo de 35px soma com os 13px
+ * de respiro do primeiro item e deixa o texto exatamente 48px abaixo da barra
+ * do painel. Os 13px em cima e embaixo de cada item dão os 26px de espaço
+ * entre eles e, de quebra, um alvo de toque de 47px.
+ */
 const lista: CSSProperties = {
   flex: 1,
   minHeight: 0,
   display: 'flex',
   flexDirection: 'column',
-  justifyContent: 'center',
-  padding: '0 28px',
+  alignItems: 'flex-start',
+  padding: '35px 32px 32px',
   overflowY: 'auto',
 }
 
@@ -117,64 +132,74 @@ const lista: CSSProperties = {
  * em 0s com atraso de .4s: os itens seguem visíveis enquanto o painel desliza
  * para fora e só então voltam ao estado inicial, prontos para a próxima vez.
  */
-const item = (ativo: boolean, i: number, aberto: boolean): CSSProperties => {
-  const atraso = 0.15 + i * 0.05
+function entrada(i: number, aberto: boolean): CSSProperties {
+  const atraso = 0.12 + i * 0.04
   return {
-    display: 'flex',
-    alignItems: 'center',
-    gap: 14,
-    width: '100%',
-    padding: '14px 0',
-    border: 0,
-    background: 'none',
-    color: ativo ? MENTA : CREME,
-    font: '300 30px/1.15 Sentient, Georgia, serif',
-    letterSpacing: '-0.01em',
-    textAlign: 'left',
-    cursor: 'pointer',
     opacity: aberto ? 1 : 0,
-    transform: aberto ? 'translateX(0)' : 'translateX(16px)',
+    transform: aberto ? 'translateX(0)' : 'translateX(12px)',
     transition: aberto
-      ? `opacity .45s ${EASE} ${atraso}s, transform .45s ${EASE} ${atraso}s, color .3s ${EASE}`
-      : `opacity 0s .4s, transform 0s .4s, color .3s ${EASE}`,
+      ? `opacity .4s ${EASE} ${atraso}s, transform .4s ${EASE} ${atraso}s`
+      : 'opacity 0s .4s, transform 0s .4s',
   }
 }
 
-/** o ativo se diferencia só por isto e pela cor do texto: o traço cresce */
-const traco = (ativo: boolean): CSSProperties => ({
-  flex: 'none',
-  width: ativo ? 40 : 24,
+/*
+ * O 85% mora na cor, não no opacity: o opacity é do stagger de entrada, e as
+ * duas coisas na mesma propriedade brigariam na lista de transições, o que
+ * faria os itens desaparecerem antes do painel na saída.
+ */
+const item = (ativo: boolean, realce: boolean, i: number, aberto: boolean): CSSProperties => {
+  const mov = entrada(i, aberto)
+  return {
+    display: 'block',
+    width: '100%',
+    padding: '13px 0',
+    border: 0,
+    background: 'none',
+    color: ativo ? MENTA : realce ? CREME : 'rgba(246, 242, 234, .85)',
+    font: `400 16px/1.3 ${SWITZER}`,
+    letterSpacing: '0.01em',
+    textAlign: 'left',
+    outline: 'none',
+    cursor: 'pointer',
+    ...mov,
+    transition: `${mov.transition}, color .25s ${EASE}`,
+  }
+}
+
+/* o último item já traz 13px de respiro; faltam 27 para os 40 pedidos */
+const hairline: CSSProperties = {
+  width: 32,
   height: 1,
-  background: MENTA,
-  transition: `width .3s ${EASE}`,
-})
+  marginTop: 27,
+  background: 'rgba(217, 210, 195, .25)',
+}
+
+/* menta sólida, sem pill e sem ícone: o opacity fica só para a entrada */
+const acao: CSSProperties = {
+  marginTop: 32,
+  padding: 0,
+  border: 0,
+  background: 'none',
+  color: MENTA,
+  font: `500 13px/1.2 ${SWITZER}`,
+  letterSpacing: '0.14em',
+  textTransform: 'uppercase',
+  textAlign: 'left',
+  outline: 'none',
+  cursor: 'pointer',
+}
 
 const rodape: CSSProperties = {
   flex: 'none',
-  borderTop: '1px solid rgba(217, 210, 195, .2)',
-  padding: '24px 28px',
-  paddingBottom: 'calc(24px + env(safe-area-inset-bottom))',
-}
-
-const doar: CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  gap: 10,
-  height: 48,
-  width: '100%',
-  borderRadius: 999,
-  background: MENTA,
-  color: VERDE,
-  font: '500 15px/1 Switzer, Helvetica, Arial, sans-serif',
-  textDecoration: 'none',
+  padding: '28px 32px',
+  paddingBottom: 'calc(28px + env(safe-area-inset-bottom))',
 }
 
 const local: CSSProperties = {
   display: 'block',
-  marginTop: 16,
-  font: '400 12px/1.4 Switzer, Helvetica, Arial, sans-serif',
-  color: 'rgba(246, 242, 234, .6)',
+  font: `400 12px/1.4 ${SWITZER}`,
+  color: 'rgba(246, 242, 234, .5)',
 }
 
 const links: CSSProperties = {
@@ -184,15 +209,13 @@ const links: CSSProperties = {
   marginTop: 10,
 }
 
-const link: CSSProperties = {
-  padding: 0,
-  border: 0,
-  background: 'none',
-  font: '400 12px/1.4 Switzer, Helvetica, Arial, sans-serif',
-  color: MENTA,
+const link = (realce: boolean): CSSProperties => ({
+  font: `400 12px/1.4 ${SWITZER}`,
+  color: realce ? MENTA : 'rgba(246, 242, 234, .7)',
   textDecoration: 'none',
-  cursor: 'pointer',
-}
+  outline: 'none',
+  transition: `color .25s ${EASE}`,
+})
 
 /**
  * Menu mobile: um painel que entra da direita, com um overlay atrás.
@@ -207,8 +230,10 @@ const link: CSSProperties = {
  */
 export function MenuMobile({ aberto, aoFechar, aoNavegar, ativo }: Props) {
   const caixa = useRef<HTMLElement>(null)
-  const primeiro = useRef<HTMLButtonElement>(null)
+  const botaoFechar = useRef<HTMLButtonElement>(null)
   const pendente = useRef<string | null>(null)
+  /* hover e foco compartilham o mesmo realce: dentro do painel o foco é cor */
+  const [realce, setRealce] = useState<string | null>(null)
   // o painel é só do mobile; no desktop a navegação é o índice lateral
   const mobile = useIsMobile()
 
@@ -223,8 +248,15 @@ export function MenuMobile({ aberto, aoFechar, aoNavegar, ativo }: Props) {
   }, [aberto])
 
   useEffect(() => {
-    if (!aberto) return
-    primeiro.current?.focus()
+    if (!aberto) {
+      setRealce(null)
+      return
+    }
+    /*
+     * O foco vai para o X, não para o primeiro link: ali ele é esperado, e o
+     * link de largura total ganhava uma caixa do `:focus-visible` global.
+     */
+    botaoFechar.current?.focus()
 
     const aoTeclar = (e: KeyboardEvent) => {
       if (e.key === 'Escape') aoFechar()
@@ -251,6 +283,15 @@ export function MenuMobile({ aberto, aoFechar, aoNavegar, ativo }: Props) {
     aoFechar()
   }
 
+  /** hover, toque e foco acendem o mesmo realce */
+  const realcar = (id: string) => ({
+    onMouseEnter: () => setRealce(id),
+    onMouseLeave: () => setRealce((r) => (r === id ? null : r)),
+    onFocus: () => setRealce(id),
+    onBlur: () => setRealce((r) => (r === id ? null : r)),
+    onTouchStart: () => setRealce(id),
+  })
+
   return createPortal(
     <>
       <button
@@ -271,12 +312,18 @@ export function MenuMobile({ aberto, aoFechar, aoNavegar, ativo }: Props) {
         <div style={topo}>
           <span style={marca}>
             <span style={{ display: 'inline-flex', color: MENTA }}>
-              <Coracao largura={20} />
+              <Coracao largura={18} />
             </span>
             {SITE.nome}
           </span>
 
-          <button type="button" style={fechar} onClick={aoFechar} aria-label="Fechar o menu">
+          <button
+            ref={botaoFechar}
+            type="button"
+            style={fechar}
+            onClick={aoFechar}
+            aria-label="Fechar o menu"
+          >
             <X size={22} strokeWidth={1.75} />
           </button>
         </div>
@@ -285,45 +332,51 @@ export function MenuMobile({ aberto, aoFechar, aoNavegar, ativo }: Props) {
           {NAV.map((n, i) => (
             <button
               key={n.id}
-              ref={i === 0 ? primeiro : undefined}
               type="button"
-              style={item(ativo === n.id, i, aberto)}
+              style={item(ativo === n.id, realce === n.id, i, aberto)}
               aria-current={ativo === n.id ? 'true' : undefined}
               onClick={() => irAte(n.id)}
+              {...realcar(n.id)}
             >
-              <span style={traco(ativo === n.id)} aria-hidden="true" />
               {n.label}
             </button>
           ))}
+
+          <span style={{ ...hairline, ...entrada(NAV.length, aberto) }} aria-hidden="true" />
+
+          <button
+            type="button"
+            style={{ ...acao, ...entrada(NAV.length + 1, aberto) }}
+            onClick={() => irAte('como-ajudar')}
+          >
+            Doar via PIX
+          </button>
         </nav>
 
         <div style={rodape}>
-          <a
-            href="#como-ajudar"
-            style={doar}
-            onClick={(e) => {
-              e.preventDefault()
-              irAte('como-ajudar')
-            }}
-          >
-            <Coracao largura={16} />
-            Doar
-          </a>
-
           <span style={local}>
-            {SITE.local}, desde {SITE.desde}
+            {SITE.local} · desde {SITE.desde}
           </span>
 
           <span style={links}>
-            <a href={SITE.instagramUrl} target="_blank" rel="noopener noreferrer" style={link}>
+            <a
+              href={SITE.instagramUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={link(realce === 'ig')}
+              {...realcar('ig')}
+            >
               {SITE.instagram}
             </a>
-            <a href={SITE.whatsapp} target="_blank" rel="noopener noreferrer" style={link}>
+            <a
+              href={SITE.whatsapp}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={link(realce === 'wa')}
+              {...realcar('wa')}
+            >
               WhatsApp
             </a>
-            <button type="button" style={link} onClick={() => irAte('como-ajudar')}>
-              PIX
-            </button>
           </span>
         </div>
       </aside>
