@@ -59,8 +59,6 @@
   backdrop-filter: none;
   border-bottom-color: transparent;
   color: var(--creme);
-  /* sem fade: a faixa antiga ficava visível durante a transição */
-  transition: none;
 }
 
 .barra[data-menu] .barra__marca {

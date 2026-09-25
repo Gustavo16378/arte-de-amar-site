@@ -32,8 +32,11 @@ export function Header() {
   const escuro = useTemaEscuro(ALTURA_HEADER)
   const { ativo, rolou, mostraDoar } = useNavegacao(preenchimento)
 
-  // a barra só se esconde quando o menu está fechado
-  const barraEscondida = direcao === 'baixo' && !menuAberto
+  /*
+   * Com o menu aberto a barra sai de cena: o painel tem a sua própria marca
+   * e o seu X, e a barra atrás dele só aparecia como uma faixa no topo.
+   */
+  const barraEscondida = menuAberto || direcao === 'baixo'
 
   const navegar = useCallback((id: string) => {
     irPara(`#${id}`, ALTURA_HEADER)
